@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>List of games</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      flex-direction: column;
+      background-color: #0f0f10;
+      color: #efeff1;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Arial, sans-serif;
+    "
+  >
+    <header
+      style="
+        height: 60px;
+        width: 100%;
+        background-color: #18181b;
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 24px;
+        box-sizing: border-box;
+      "
+    >
+      <div class="left-header-group" style="display: flex; gap: 16px">
+        <div
+          class="logo"
+          style="
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: #9146ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #ffffff;
+          "
+        >
+          T
+        </div>
+        <div
+          class="following"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+          "
+        >
+          following
+        </div>
+        <div
+          class="browse"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+          "
+        >
+          browse
+        </div>
+      </div>
+
+      <div
+        class="center-header-group"
+        style="flex: 1; display: flex; justify-content: center"
+      >
+        <input
+          type="text"
+          placeholder="search"
+          style="
+            width: 100%;
+            max-width: 400px;
+            height: 36px;
+            background-color: #0f0f10;
+            border-radius: 4px;
+            border: none;
+            padding: 0 12px;
+            color: #efeff1;
+            font-size: 14px;
+            outline: none;
+          "
+        />
+      </div>
+
+      <div class="right-header-group" style="display: flex; gap: 16px">
+        <button>Log in</button>
+        <button>Sign up</button>
+        <div class="user-menu">User</div>
+      </div>
+    </header>
+    <aside
+      style="
+        width: 240px;
+        height: 100vh;
+        background-color: #27272a;
+        top: 0px;
+        left: 0;
+        flex-shrink: 0;
+      "
+    ></aside>
+    <main></main>
+  </body>
+</html>

@@ -50,7 +50,7 @@
         >
           T
         </div>
-        <nav>
+        <nav style="display: flex; align-items: center; gap: 16px">
           <a
             href="#"
             class="following"
@@ -60,9 +60,11 @@
               justify-content: center;
               font-size: 14px;
               cursor: pointer;
+              text-decoration: none;
+              color: #efeff1;
             "
           >
-            following
+            Following
           </a>
           <a
             href="#"
@@ -73,9 +75,11 @@
               justify-content: center;
               font-size: 14px;
               cursor: pointer;
+              text-decoration: none;
+              color: #efeff1;
             "
           >
-            browse
+            Browse
           </a>
         </nav>
       </div>
@@ -158,14 +162,41 @@
     <aside
       style="
         position: fixed;
-        width: 240px;
-        height: calc(100vh-60px);
-        background-color: #27272a;
         top: 60px;
         left: 0;
+        width: 240px;
+        height: calc(100vh - 60px);
+        background-color: #27272a;
+        color: #efeff1;
+        padding-top: 12px;
+        padding-left: 8px;
+        padding-right: 8px;
+        padding-bottom: 12px;
         flex-shrink: 0;
+        overflow-y: auto;
       "
-    ></aside>
+    >
+      <section
+        class="following-section"
+        style="
+          font-size: 14px;
+          font-weight: 600;
+          margin-top: 0;
+          margin-bottom: 8px;
+          color: #efeff1;
+        "
+      >
+        <h2 class="selection-title"></h2>
+
+        <div class="channel-row">
+          <div class="avatar">A</div>
+          <div class="channel-info">
+            <div class="channel-name"></div>
+            <div class="channel-game"></div>
+          </div>
+        </div>
+      </section>
+    </aside>
     <main></main>
   </body>
 </html>

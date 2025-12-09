@@ -205,7 +205,7 @@
               border-radius: 50%;
               height: 24px;
               width: 24px;
-              background-color: 3f3f46;
+              background-color: #3f3f46;
             "
           >
             A
@@ -214,17 +214,21 @@
             <div
               class="channel-name"
               style="
-                size: 13px;
+                font-size: 13px;
                 color: #efeff1;
-                margin: 0 0 3px 0;
-                line-height: 1;
+                /* margin: 0 0 3px 0;
+                line-height: 1; */
+                margin-bottom: 3px;
               "
             >
               Bzooka
             </div>
             <div
               class="channel-game"
-              style="size: 12px; color: #a1a1aa; margin: 0; line-height: 1"
+              style="
+                font-size: 12px;
+                color: #a1a1aa; /* margin: 0; line-height: 1 */
+              "
             >
               CS 3
             </div>
@@ -232,7 +236,7 @@
           <div
             class="online_number"
             style="
-              size: 13px;
+              font-size: 13px;
               color: #efeff1;
               margin: 0 0 3px 0;
               margin-left: auto;
@@ -243,12 +247,31 @@
           <div
             class="online_icon"
             style="
-              size: 13px;
-              color: #efeff1;
-              margin: 0 0 3px 0;
-              margin-left: auto;
+              width: 8px;
+              height: 8px;
+              background-color: #e20808;
+              border-radius: 50%;
+              margin-left: 4px;
             "
           ></div>
+          <div
+            class="add_stream_button"
+            style="
+              width: 16px;
+              height: 16px;
+              border-radius: 4px;
+              background-color: #3f3f46;
+              color: #efeff1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+              cursor: pointer;
+              margin-left: 6px;
+            "
+          >
+            +
+          </div>
           <div class="sidebar_viewers"></div>
         </div>
       </section>

@@ -1,549 +1,131 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>List of games</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="main.js" defer></script>
   </head>
-  <body
-    style="
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      flex-direction: column;
-      background-color: #0f0f10;
-      color: #efeff1;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-        Arial, sans-serif;
-    "
-  >
-    <header
-      style="
-        height: 60px;
-        width: 100%;
-        background-color: #18181b;
-        display: flex;
-        position: fixed;
-        top: 0;
-        left: 0;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 24px;
-        box-sizing: border-box;
-      "
-    >
-      <div class="left-header-group" style="display: flex; gap: 16px">
-        <div
-          class="logo"
-          style="
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background-color: #9146ff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 18px;
-            color: #ffffff;
-          "
-        >
-          T
-        </div>
-        <nav style="display: flex; align-items: center; gap: 16px">
-          <a
-            href="#"
-            class="following"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 14px;
-              cursor: pointer;
-              text-decoration: none;
-              color: #efeff1;
-            "
-          >
-            Following
-          </a>
-          <a
-            href="#"
-            class="browse"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 14px;
-              cursor: pointer;
-              text-decoration: none;
-              color: #efeff1;
-            "
-          >
-            Browse
-          </a>
+  <body class="page js-page">
+    <header class="header">
+      <div class="header__left">
+        <div class="logo" aria-label="Platform logo">T</div>
+        <nav class="header-nav" aria-label="Main navigation">
+          <a href="#" class="header-nav__link js-nav-link">Following</a>
+          <a href="#" class="header-nav__link js-nav-link">Browse</a>
         </nav>
       </div>
 
-      <div
-        class="center-header-group"
-        style="flex: 1; display: flex; justify-content: center"
-      >
+      <div class="header__center">
         <input
           type="text"
+          class="search-input js-search-input"
           placeholder="Search..."
-          style="
-            width: 100%;
-            max-width: 400px;
-            height: 36px;
-            background-color: #0f0f10;
-            border-radius: 4px;
-            border: none;
-            padding: 0 12px;
-            color: #efeff1;
-            font-size: 14px;
-            outline: none;
-          "
+          aria-label="Search"
         />
       </div>
 
-      <div
-        class="right-header-group"
-        style="display: flex; align-items: center; gap: 12px"
-      >
-        <button
-          style="
-            height: 32px;
-            padding: 0 12px;
-            background-color: transparent;
-            border-radius: 25px;
-            border: 1px solid #3f3f46;
-            color: #efeff1;
-            font-size: 13px;
-            cursor: pointer;
-          "
-        >
-          Log in
-        </button>
-
-        <button
-          style="
-            height: 32px;
-            padding: 0 12px;
-            background-color: #9146ff;
-            border-radius: 25px;
-            border: 1px solid #3f3f46;
-            color: #efeff1;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-          "
-        >
-          Sign up
-        </button>
-
-        <div
-          class="user-menu"
-          style="
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #3f3f46;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            cursor: pointer;
-          "
-        >
-          User
-        </div>
+      <div class="header__right">
+        <button class="btn btn--ghost js-login-btn" type="button">Log in</button>
+        <button class="btn btn--primary js-signup-btn" type="button">Sign up</button>
+        <button class="user-menu js-user-menu" type="button">User</button>
       </div>
     </header>
-    <aside
-      style="
-        position: fixed;
-        top: 60px;
-        left: 0;
-        width: 240px;
-        height: calc(100vh - 60px);
-        background-color: #27272a;
-        color: #efeff1;
-        padding-top: 12px;
-        padding-left: 8px;
-        padding-right: 8px;
-        padding-bottom: 12px;
-        flex-shrink: 0;
-        overflow-y: auto;
-      "
-    >
-      <section class="following-section">
-        <h2
-          class="selection-title"
-          style="
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: #efeff1;
-          "
-        >
-          Following
-        </h2>
 
-        <div
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-          "
-        >
-          <div
-            style="
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              background: #3f3f46;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-            "
-          >
-            B
+    <aside class="sidebar" aria-label="Following channels">
+      <section class="channel-section">
+        <h2 class="section-title">Following</h2>
+
+        <div class="channel-card js-channel-card" data-channel="Bzooka">
+          <div class="channel-card__avatar">B</div>
+          <div class="channel-card__meta">
+            <div class="channel-card__name">Bzooka</div>
+            <div class="channel-card__game">CS 3</div>
           </div>
-          <div>
-            <div style="font-size: 13px; margin-bottom: 3px">Bzooka</div>
-            <div style="font-size: 12px; color: #a1a1aa">CS 3</div>
-          </div>
-          <div style="margin-left: auto; font-size: 13px">1 033</div>
-          <div
-            style="
-              width: 8px;
-              height: 8px;
-              background: #e20808;
-              border-radius: 50%;
-              margin-left: 4px;
-            "
-          ></div>
-          <div
-            style="
-              width: 16px;
-              height: 16px;
-              background: #3f3f46;
-              border-radius: 4px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-              margin-left: 6px;
-            "
-          >
-            +
-          </div>
+          <div class="channel-card__viewers">1 033</div>
+          <div class="channel-card__live-dot" aria-hidden="true"></div>
+          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow Bzooka">+</button>
         </div>
 
-        <div
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-          "
-        >
-          <div
-            style="
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              background: #3f3f46;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-            "
-          >
-            L
+        <div class="channel-card js-channel-card" data-channel="LunaPlay">
+          <div class="channel-card__avatar">L</div>
+          <div class="channel-card__meta">
+            <div class="channel-card__name">LunaPlay</div>
+            <div class="channel-card__game">Just Chatting</div>
           </div>
-          <div>
-            <div style="font-size: 13px; margin-bottom: 3px">LunaPlay</div>
-            <div style="font-size: 12px; color: #a1a1aa">Just Chatting</div>
-          </div>
-          <div style="margin-left: auto; font-size: 13px">842</div>
-          <div
-            style="
-              width: 8px;
-              height: 8px;
-              background: #e20808;
-              border-radius: 50%;
-              margin-left: 4px;
-            "
-          ></div>
-          <div
-            style="
-              width: 16px;
-              height: 16px;
-              background: #3f3f46;
-              border-radius: 4px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-              margin-left: 6px;
-            "
-          >
-            +
-          </div>
+          <div class="channel-card__viewers">842</div>
+          <div class="channel-card__live-dot" aria-hidden="true"></div>
+          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow LunaPlay">+</button>
         </div>
 
-        <div
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-          "
-        >
-          <div
-            style="
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              background: #3f3f46;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-            "
-          >
-            R
+        <div class="channel-card js-channel-card" data-channel="Rexxar">
+          <div class="channel-card__avatar">R</div>
+          <div class="channel-card__meta">
+            <div class="channel-card__name">Rexxar</div>
+            <div class="channel-card__game">Valorant</div>
           </div>
-          <div>
-            <div style="font-size: 13px; margin-bottom: 3px">Rexxar</div>
-            <div style="font-size: 12px; color: #a1a1aa">Valorant</div>
-          </div>
-          <div style="margin-left: auto; font-size: 13px">529</div>
-          <div
-            style="
-              width: 8px;
-              height: 8px;
-              background: #e20808;
-              border-radius: 50%;
-              margin-left: 4px;
-            "
-          ></div>
-          <div
-            style="
-              width: 16px;
-              height: 16px;
-              background: #3f3f46;
-              border-radius: 4px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-              margin-left: 6px;
-            "
-          >
-            +
-          </div>
+          <div class="channel-card__viewers">529</div>
+          <div class="channel-card__live-dot" aria-hidden="true"></div>
+          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow Rexxar">+</button>
         </div>
 
-        <div
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-          "
-        >
-          <div
-            style="
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              background: #3f3f46;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-            "
-          >
-            A
+        <div class="channel-card js-channel-card" data-channel="ArtMoth">
+          <div class="channel-card__avatar">A</div>
+          <div class="channel-card__meta">
+            <div class="channel-card__name">ArtMoth</div>
+            <div class="channel-card__game">Art</div>
           </div>
-          <div>
-            <div style="font-size: 13px; margin-bottom: 3px">ArtMoth</div>
-            <div style="font-size: 12px; color: #a1a1aa">Art</div>
-          </div>
-          <div style="margin-left: auto; font-size: 13px">214</div>
-          <div
-            style="
-              width: 8px;
-              height: 8px;
-              background: #e20808;
-              border-radius: 50%;
-              margin-left: 4px;
-            "
-          ></div>
-          <div
-            style="
-              width: 16px;
-              height: 16px;
-              background: #3f3f46;
-              border-radius: 4px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-              margin-left: 6px;
-            "
-          >
-            +
-          </div>
+          <div class="channel-card__viewers">214</div>
+          <div class="channel-card__live-dot" aria-hidden="true"></div>
+          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow ArtMoth">+</button>
         </div>
 
-        <div
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-          "
-        >
-          <div
-            style="
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              background: #3f3f46;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-            "
-          >
-            M
+        <div class="channel-card js-channel-card" data-channel="MusicLab">
+          <div class="channel-card__avatar">M</div>
+          <div class="channel-card__meta">
+            <div class="channel-card__name">MusicLab</div>
+            <div class="channel-card__game">Music</div>
           </div>
-          <div>
-            <div style="font-size: 13px; margin-bottom: 3px">MusicLab</div>
-            <div style="font-size: 12px; color: #a1a1aa">Music</div>
-          </div>
-          <div style="margin-left: auto; font-size: 13px">98</div>
-          <div
-            style="
-              width: 8px;
-              height: 8px;
-              background: #e20808;
-              border-radius: 50%;
-              margin-left: 4px;
-            "
-          ></div>
-          <div
-            style="
-              width: 16px;
-              height: 16px;
-              background: #3f3f46;
-              border-radius: 4px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-              margin-left: 6px;
-            "
-          >
-            +
-          </div>
+          <div class="channel-card__viewers">98</div>
+          <div class="channel-card__live-dot" aria-hidden="true"></div>
+          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow MusicLab">+</button>
         </div>
       </section>
     </aside>
-    <main style="margin-top: 60px; margin-left: 256px; padding: 24px">
-      <section style="">
-        <h1>All streamers</h1>
+
+    <main class="content">
+      <section class="content-header">
+        <h1 class="content-header__title">All streamers</h1>
       </section>
 
-      <section style="display: flex; gap: 8px; margin-bottom: 16px">
-        <button style="font-weight: 600">Top viewers</button>
-        <button>Lowest viewers</button>
-        <button>New streamers</button>
+      <section class="filter-bar" aria-label="Streamers filters">
+        <button class="filter-bar__button is-active js-sort-btn" data-sort="top" type="button">Top viewers</button>
+        <button class="filter-bar__button js-sort-btn" data-sort="lowest" type="button">Lowest viewers</button>
+        <button class="filter-bar__button js-sort-btn" data-sort="new" type="button">New streamers</button>
       </section>
 
-      <section style="height: 56px; padding: 0 12px">
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            height: 56px;
-            padding: 0 12px;
-          "
-        >
-          <div
-            style="
-              width: 32px;
-              height: 32px;
-              background: #3f3f46;
-              border-radius: 50%;
-            "
-          ></div>
-          <div>Streamer Name</div>
-          <div style="margin-left: auto">12345</div>
-          <div
-            style="width: 8px; height: 8px; background: red; border-radius: 50%"
-          ></div>
-        </div>
+      <section class="streamers-list js-streamers-list" aria-label="Streamers list">
+        <article class="streamer-row js-streamer-row" data-viewers="12345">
+          <div class="streamer-row__avatar"></div>
+          <div class="streamer-row__name">Streamer Name</div>
+          <div class="streamer-row__viewers">12345</div>
+          <div class="streamer-row__live-dot" aria-hidden="true"></div>
+        </article>
 
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            height: 56px;
-            padding: 0 12px;
-          "
-        >
-          <div
-            style="
-              width: 32px;
-              height: 32px;
-              background: #3f3f46;
-              border-radius: 50%;
-            "
-          ></div>
-          <div>Streamer Name 2</div>
-          <div style="margin-left: auto">1234</div>
-          <div
-            style="width: 8px; height: 8px; background: red; border-radius: 50%"
-          ></div>
-        </div>
+        <article class="streamer-row js-streamer-row" data-viewers="1234">
+          <div class="streamer-row__avatar"></div>
+          <div class="streamer-row__name">Streamer Name 2</div>
+          <div class="streamer-row__viewers">1234</div>
+          <div class="streamer-row__live-dot" aria-hidden="true"></div>
+        </article>
 
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            height: 56px;
-            padding: 0 12px;
-          "
-        >
-          <div
-            style="
-              width: 32px;
-              height: 32px;
-              background: #3f3f46;
-              border-radius: 50%;
-            "
-          ></div>
-          <div>Streamer Name 3</div>
-          <div style="margin-left: auto">0</div>
-          <div
-            style="width: 8px; height: 8px; background: red; border-radius: 50%"
-          ></div>
-        </div>
+        <article class="streamer-row js-streamer-row" data-viewers="0">
+          <div class="streamer-row__avatar"></div>
+          <div class="streamer-row__name">Streamer Name 3</div>
+          <div class="streamer-row__viewers">0</div>
+          <div class="streamer-row__live-dot" aria-hidden="true"></div>
+        </article>
       </section>
     </main>
   </body>

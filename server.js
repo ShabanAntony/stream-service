@@ -130,8 +130,74 @@ async function twitchGetUsersByLogin({ token, logins }) {
   return usersByLogin;
 }
 
+async function twitchGetGameIdByName({ token, name }) {
+  const url = new URL('https://api.twitch.tv/helix/games');
+  url.searchParams.set('name', name);
+
+  const json = await twitchFetchJson(url, token);
+  const games = Array.isArray(json.data) ? json.data : [];
+  const first = games[0];
+
+  return first && first.id ? String(first.id) : null;
+}
+
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
+});
+
+app.get('/api/twitch/streams-by-game', async (req, res) => {
+  try {
+    const token = await getTwitchAppToken();
+
+    const name = String(req.query.name || '').trim();
+    if (!name) {
+      res.status(400).json({ error: 'Missing query param: name' });
+      return;
+    }
+
+    const first = Math.min(Math.max(Number(req.query.first || 10), 1), 100);
+
+    const gameId = await twitchGetGameIdByName({ token, name });
+    if (!gameId) {
+      res.status(404).json({ error: `Game not found: ${name}` });
+      return;
+    }
+
+    const url = new URL('https://api.twitch.tv/helix/streams');
+    url.searchParams.set('first', String(first));
+    url.searchParams.set('game_id', gameId);
+
+    const streamsJson = await twitchFetchJson(url, token);
+    const items = Array.isArray(streamsJson.data) ? streamsJson.data : [];
+    const userIds = Array.from(new Set(items.map((s) => s.user_id).filter(Boolean)));
+
+    const usersById = await twitchGetUsersById({ token, userIds });
+
+    const normalized = items.map((s) => {
+      const user = usersById.get(s.user_id) || {};
+      const channel = (s.user_login || s.user_name || '').toLowerCase();
+      const id = `twitch-${channel}`;
+
+      return {
+        id,
+        platform: 'twitch',
+        channel,
+        title: s.user_name || channel,
+        category: s.game_name || 'Unknown',
+        language: s.language || '',
+        region: null,
+        viewerCount: Number(s.viewer_count || 0),
+        createdAt: user.created_at ? String(user.created_at).slice(0, 10) : null,
+        url: channel ? `https://www.twitch.tv/${channel}` : 'https://www.twitch.tv/',
+        isLive: true,
+      };
+    });
+
+    res.json({ data: normalized });
+  } catch (err) {
+    const status = err && err.statusCode ? err.statusCode : 500;
+    res.status(status).json({ error: String(err.message || err) });
+  }
 });
 
 app.get('/api/twitch/streams', async (req, res) => {

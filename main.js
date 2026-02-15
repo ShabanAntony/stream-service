@@ -25,7 +25,7 @@
   },
 ];
 
-const preferredTwitchLogins = ['alohadancetv', 'admiralbulldog', 'iltw1', 'dnmdota'];
+const preferredGameName = 'Dota 2';
 
 // Used when the API proxy isn't running / configured yet.
 const fallbackStreams = [
@@ -476,7 +476,7 @@ function setAge(age) {
 
 async function hydrateTwitchStreams() {
   try {
-    const url = `/api/twitch/streams?logins=${preferredTwitchLogins.join(',')}`;
+    const url = `/api/twitch/streams-by-game?name=${encodeURIComponent(preferredGameName)}&first=10`;
     const res = await fetch(url);
     if (!res.ok) {
       runtime.source = 'error';

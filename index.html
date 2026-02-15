@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>List of games</title>
+    <title>Stream Hub</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="main.js" defer></script>
   </head>
   <body class="page js-page">
     <header class="header">
       <div class="header__left">
-        <div class="logo" aria-label="Platform logo">T</div>
+        <div class="logo" aria-label="Platform logo">SH</div>
         <nav class="header-nav" aria-label="Main navigation">
-          <a href="#" class="header-nav__link js-nav-link">Following</a>
-          <a href="#" class="header-nav__link js-nav-link">Browse</a>
+          <a href="#" class="header-nav__link is-active">Directory</a>
+          <a href="#" class="header-nav__link">Multiview</a>
         </nav>
       </div>
 
@@ -21,112 +21,138 @@
         <input
           type="text"
           class="search-input js-search-input"
-          placeholder="Search..."
+          placeholder="Search streams..."
           aria-label="Search"
         />
       </div>
 
       <div class="header__right">
-        <button class="btn btn--ghost js-login-btn" type="button">Log in</button>
-        <button class="btn btn--primary js-signup-btn" type="button">Sign up</button>
-        <button class="user-menu js-user-menu" type="button">User</button>
+        <div class="dock-toggle" role="group" aria-label="Dock position">
+          <button class="dock-toggle__btn js-dock-btn" data-dock="left" type="button">
+            Dock left
+          </button>
+          <button class="dock-toggle__btn js-dock-btn" data-dock="right" type="button">
+            Dock right
+          </button>
+        </div>
+
+        <div class="slot-toggle" role="group" aria-label="Target slot">
+          <button class="slot-toggle__btn js-slot-btn" data-slot="1" type="button">1</button>
+          <button class="slot-toggle__btn js-slot-btn" data-slot="2" type="button">2</button>
+          <button class="slot-toggle__btn js-slot-btn" data-slot="3" type="button">3</button>
+          <button class="slot-toggle__btn js-slot-btn" data-slot="4" type="button">4</button>
+        </div>
+
+        <button class="btn btn--ghost" type="button">Log in</button>
+        <button class="btn btn--primary" type="button">Sign up</button>
       </div>
     </header>
 
-    <aside class="sidebar" aria-label="Following channels">
-      <section class="channel-section">
-        <h2 class="section-title">Following</h2>
-
-        <div class="channel-card js-channel-card" data-channel="Bzooka">
-          <div class="channel-card__avatar">B</div>
-          <div class="channel-card__meta">
-            <div class="channel-card__name">Bzooka</div>
-            <div class="channel-card__game">CS 3</div>
-          </div>
-          <div class="channel-card__viewers">1 033</div>
-          <div class="channel-card__live-dot" aria-hidden="true"></div>
-          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow Bzooka">+</button>
+    <div class="app js-app">
+      <aside class="panel" aria-label="Directory">
+        <div class="panel__header">
+          <h2 class="panel__title">Directory</h2>
         </div>
 
-        <div class="channel-card js-channel-card" data-channel="LunaPlay">
-          <div class="channel-card__avatar">L</div>
-          <div class="channel-card__meta">
-            <div class="channel-card__name">LunaPlay</div>
-            <div class="channel-card__game">Just Chatting</div>
+        <section class="filters" aria-label="Filters">
+          <div class="filters__row" role="group" aria-label="Sort">
+            <button class="chip is-active js-sort-btn" data-sort="online_desc" type="button">
+              Online high
+            </button>
+            <button class="chip js-sort-btn" data-sort="online_asc" type="button">
+              Online low
+            </button>
+            <button class="chip js-sort-btn" data-sort="created_desc" type="button">
+              New recruits
+            </button>
+            <button class="chip js-sort-btn" data-sort="created_asc" type="button">
+              Veterans
+            </button>
           </div>
-          <div class="channel-card__viewers">842</div>
-          <div class="channel-card__live-dot" aria-hidden="true"></div>
-          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow LunaPlay">+</button>
+
+          <div class="filters__row">
+            <label class="select" aria-label="Language">
+              <span class="select__label">Language</span>
+              <select class="select__field js-language-select">
+                <option value="">All</option>
+                <option value="en">English</option>
+                <option value="ru">Russian</option>
+                <option value="es">Spanish</option>
+              </select>
+            </label>
+
+            <label class="select" aria-label="Platform">
+              <span class="select__label">Platform</span>
+              <select class="select__field js-platform-select">
+                <option value="">All</option>
+                <option value="twitch">Twitch</option>
+                <option value="kick">Kick</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="filters__row" role="group" aria-label="Account age">
+            <button class="chip js-age-btn" data-age="" type="button">Any age</button>
+            <button class="chip js-age-btn" data-age="recruit" type="button">Recruit</button>
+            <button class="chip js-age-btn" data-age="experienced" type="button">Experienced</button>
+            <button class="chip js-age-btn" data-age="veteran" type="button">Veteran</button>
+          </div>
+        </section>
+
+        <section class="stream-list" aria-label="Streams">
+          <div class="stream-list__meta js-results-meta">0 results</div>
+          <div class="stream-list__items js-stream-list"></div>
+        </section>
+      </aside>
+
+      <main class="workspace" aria-label="Multiview">
+        <div class="workspace__header">
+          <h2 class="workspace__title">Multiview (2x2)</h2>
+          <div class="workspace__hint">Click a stream to add it. Click a slot to focus. Keys: 1-4 target slot.</div>
         </div>
 
-        <div class="channel-card js-channel-card" data-channel="Rexxar">
-          <div class="channel-card__avatar">R</div>
-          <div class="channel-card__meta">
-            <div class="channel-card__name">Rexxar</div>
-            <div class="channel-card__game">Valorant</div>
+        <section class="multiview js-multiview" aria-label="Player slots">
+          <div class="slot js-slot" data-slot="1">
+            <div class="slot__top">
+              <div class="slot__title">Slot 1</div>
+              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 1">Clear</button>
+            </div>
+            <div class="slot__body js-slot-body">
+              <div class="slot__empty">Empty</div>
+            </div>
           </div>
-          <div class="channel-card__viewers">529</div>
-          <div class="channel-card__live-dot" aria-hidden="true"></div>
-          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow Rexxar">+</button>
-        </div>
 
-        <div class="channel-card js-channel-card" data-channel="ArtMoth">
-          <div class="channel-card__avatar">A</div>
-          <div class="channel-card__meta">
-            <div class="channel-card__name">ArtMoth</div>
-            <div class="channel-card__game">Art</div>
+          <div class="slot js-slot" data-slot="2">
+            <div class="slot__top">
+              <div class="slot__title">Slot 2</div>
+              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 2">Clear</button>
+            </div>
+            <div class="slot__body js-slot-body">
+              <div class="slot__empty">Empty</div>
+            </div>
           </div>
-          <div class="channel-card__viewers">214</div>
-          <div class="channel-card__live-dot" aria-hidden="true"></div>
-          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow ArtMoth">+</button>
-        </div>
 
-        <div class="channel-card js-channel-card" data-channel="MusicLab">
-          <div class="channel-card__avatar">M</div>
-          <div class="channel-card__meta">
-            <div class="channel-card__name">MusicLab</div>
-            <div class="channel-card__game">Music</div>
+          <div class="slot js-slot" data-slot="3">
+            <div class="slot__top">
+              <div class="slot__title">Slot 3</div>
+              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 3">Clear</button>
+            </div>
+            <div class="slot__body js-slot-body">
+              <div class="slot__empty">Empty</div>
+            </div>
           </div>
-          <div class="channel-card__viewers">98</div>
-          <div class="channel-card__live-dot" aria-hidden="true"></div>
-          <button class="channel-card__action js-follow-btn" type="button" aria-label="Follow MusicLab">+</button>
-        </div>
-      </section>
-    </aside>
 
-    <main class="content">
-      <section class="content-header">
-        <h1 class="content-header__title">All streamers</h1>
-      </section>
-
-      <section class="filter-bar" aria-label="Streamers filters">
-        <button class="filter-bar__button is-active js-sort-btn" data-sort="top" type="button">Top viewers</button>
-        <button class="filter-bar__button js-sort-btn" data-sort="lowest" type="button">Lowest viewers</button>
-        <button class="filter-bar__button js-sort-btn" data-sort="new" type="button">New streamers</button>
-      </section>
-
-      <section class="streamers-list js-streamers-list" aria-label="Streamers list">
-        <article class="streamer-row js-streamer-row" data-viewers="12345">
-          <div class="streamer-row__avatar"></div>
-          <div class="streamer-row__name">Streamer Name</div>
-          <div class="streamer-row__viewers">12345</div>
-          <div class="streamer-row__live-dot" aria-hidden="true"></div>
-        </article>
-
-        <article class="streamer-row js-streamer-row" data-viewers="1234">
-          <div class="streamer-row__avatar"></div>
-          <div class="streamer-row__name">Streamer Name 2</div>
-          <div class="streamer-row__viewers">1234</div>
-          <div class="streamer-row__live-dot" aria-hidden="true"></div>
-        </article>
-
-        <article class="streamer-row js-streamer-row" data-viewers="0">
-          <div class="streamer-row__avatar"></div>
-          <div class="streamer-row__name">Streamer Name 3</div>
-          <div class="streamer-row__viewers">0</div>
-          <div class="streamer-row__live-dot" aria-hidden="true"></div>
-        </article>
-      </section>
-    </main>
+          <div class="slot js-slot" data-slot="4">
+            <div class="slot__top">
+              <div class="slot__title">Slot 4</div>
+              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 4">Clear</button>
+            </div>
+            <div class="slot__body js-slot-body">
+              <div class="slot__empty">Empty</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
   </body>
 </html>

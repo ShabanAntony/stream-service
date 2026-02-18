@@ -236,24 +236,11 @@ function findFirstEmptySlot() {
 
 function addToSlot(streamId) {
   const preferred = state.targetSlot;
-  if (!state.slots[String(preferred)]) {
-    setSlot(preferred, streamId);
-    state.activeSlot = preferred;
-    applyActiveSlotUI();
-    persist();
-    return;
-  }
-
-  const empty = findFirstEmptySlot();
-  if (empty) {
-    setSlot(empty, streamId);
-    state.activeSlot = empty;
-    applyActiveSlotUI();
-    persist();
-    return;
-  }
-
-  setSlot(state.activeSlot, streamId);
+  // Always place into the selected target slot (replace if occupied).
+  setSlot(preferred, streamId);
+  state.activeSlot = preferred;
+  applyActiveSlotUI();
+  persist();
 }
 
 function renderSlots() {

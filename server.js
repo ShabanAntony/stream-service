@@ -183,6 +183,7 @@ app.get('/api/twitch/streams-by-game', async (req, res) => {
         platform: 'twitch',
         channel,
         title: s.user_name || channel,
+        profileImageUrl: user.profile_image_url || null,
         category: s.game_name || 'Unknown',
         language: s.language || '',
         region: null,
@@ -236,20 +237,21 @@ app.get('/api/twitch/streams', async (req, res) => {
         const stream = liveByLogin.get(login) || null;
         const channel = login;
 
-        return {
-          id: `twitch-${channel}`,
-          platform: 'twitch',
-          channel,
-          title: user.display_name || channel,
-          category: stream ? stream.game_name || 'Unknown' : 'Offline',
-          language: stream ? stream.language || '' : '',
-          region: null,
-          viewerCount: stream ? Number(stream.viewer_count || 0) : 0,
-          createdAt: user.created_at ? String(user.created_at).slice(0, 10) : null,
-          url: `https://www.twitch.tv/${channel}`,
-          isLive: Boolean(stream),
-        };
-      });
+      return {
+        id: `twitch-${channel}`,
+        platform: 'twitch',
+        channel,
+        title: user.display_name || channel,
+        profileImageUrl: user.profile_image_url || null,
+        category: stream ? stream.game_name || 'Unknown' : 'Offline',
+        language: stream ? stream.language || '' : '',
+        region: null,
+        viewerCount: stream ? Number(stream.viewer_count || 0) : 0,
+        createdAt: user.created_at ? String(user.created_at).slice(0, 10) : null,
+        url: `https://www.twitch.tv/${channel}`,
+        isLive: Boolean(stream),
+      };
+    });
 
       res.json({ data: ordered });
       return;
@@ -277,6 +279,7 @@ app.get('/api/twitch/streams', async (req, res) => {
         platform: 'twitch',
         channel,
         title: s.user_name || channel,
+        profileImageUrl: user.profile_image_url || null,
         category: s.game_name || 'Unknown',
         language: s.language || '',
         region: null,

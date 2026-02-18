@@ -432,10 +432,13 @@ function renderList() {
       const tierLabel = tier === 'recruit' ? 'Recruit' : tier === 'experienced' ? 'Experienced' : 'Veteran';
       const platformLabel = s.platform === 'twitch' ? 'Twitch' : 'Kick';
       const viewersLabel = isLive ? `${formatNumber(s.viewerCount)} viewers` : 'Currently offline';
+      const avatarHtml = s.profileImageUrl
+        ? `<img class="stream-card__avatar-img" src="${escapeHtml(s.profileImageUrl)}" alt="${escapeHtml(s.title)}" loading="lazy" />`
+        : '';
 
       return `
         <article class="stream-card" data-id="${s.id}">
-          <div class="stream-card__avatar" aria-hidden="true"></div>
+          <div class="stream-card__avatar" aria-hidden="true">${avatarHtml}</div>
           <div>
             <h3 class="stream-card__title">${escapeHtml(s.title)}</h3>
             <div class="stream-card__sub">

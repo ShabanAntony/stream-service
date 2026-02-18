@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stream Hub</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="main.js" defer></script>
+    <script type="module" src="src/main.js"></script>
   </head>
   <body class="page js-page">
     <header class="header">
@@ -35,6 +35,10 @@
             Dock right
           </button>
         </div>
+
+        <button class="focus-btn js-focus-toggle" type="button" aria-pressed="false">
+          Focus mode
+        </button>
 
         <div class="slot-toggle" role="group" aria-label="Target slot">
           <button class="slot-toggle__btn js-slot-btn" data-slot="1" type="button">1</button>

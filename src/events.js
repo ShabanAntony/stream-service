@@ -1,5 +1,6 @@
 import { hydrateTwitchStreams } from './api/hydrateTwitch.js';
-import { persist, runtime, setFallbackStreams, state } from './store.js';
+import { hydrateTrovoStreams } from './api/hydrateTrovo.js';
+import { persist, runtime, setFallbackStreams, setStreams, state } from './store.js';
 import {
   applyActiveSlotUI,
   applyDock,
@@ -90,6 +91,14 @@ export function bindEvents(refs) {
     btn.addEventListener('click', () => {
       state.targetSlot = Number(btn.dataset.slot) || 1;
       applyTargetSlotUI(slotButtons);
+
+      // Keep header target and clicked/active slot in sync.
+      state.activeSlot = state.targetSlot;
+      applyActiveSlotUI(slotEls);
+      applyFocusTarget(slotEls);
+      if (state.focusMode) {
+        renderSlots(slotEls);
+      }
       persist();
     });
   });
@@ -101,10 +110,15 @@ export function bindEvents(refs) {
         return;
       }
 
-      state.activeSlot = Number(slotEl.dataset.slot) || 1;
+      const slot = Number(slotEl.dataset.slot) || 1;
+      state.activeSlot = slot;
+      state.targetSlot = slot;
       applyActiveSlotUI(slotEls);
+      applyTargetSlotUI(slotButtons);
       applyFocusTarget(slotEls);
-      renderSlots(slotEls);
+      if (state.focusMode) {
+        renderSlots(slotEls);
+      }
       persist();
     });
 
@@ -165,7 +179,13 @@ export function bindEvents(refs) {
 
     if (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4') {
       state.targetSlot = Number(e.key);
+      state.activeSlot = state.targetSlot;
       applyTargetSlotUI(slotButtons);
+      applyActiveSlotUI(slotEls);
+      applyFocusTarget(slotEls);
+      if (state.focusMode) {
+        renderSlots(slotEls);
+      }
       persist();
     }
   });
@@ -176,14 +196,18 @@ export function bindEvents(refs) {
     renderList(listEl, resultsMetaEl);
     renderSlots(slotEls);
 
-    const data = await hydrateTwitchStreams();
-    if (data) {
+    const [twitchData, trovoData] = await Promise.all([hydrateTwitchStreams(), hydrateTrovoStreams()]);
+    const merged = [...(twitchData || []), ...(trovoData || [])];
+
+    if (merged.length) {
+      setStreams(merged, 'live');
       renderList(listEl, resultsMetaEl);
       renderSlots(slotEls);
       return;
     }
 
     runtime.source = 'error';
+    runtime.error = runtime.error || 'No data';
     renderList(listEl, resultsMetaEl);
   })();
 }

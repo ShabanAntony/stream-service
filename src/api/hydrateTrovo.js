@@ -1,9 +1,9 @@
-import { preferredGameName, twitchStreamsLimit } from '../config.js';
+import { preferredGameName, trovoStreamsLimit } from '../config.js';
 import { runtime } from '../store.js';
 
-export async function hydrateTwitchStreams() {
+export async function hydrateTrovoStreams() {
   try {
-    const url = `/api/twitch/streams-by-game?name=${encodeURIComponent(preferredGameName)}&first=${twitchStreamsLimit}`;
+    const url = `/api/trovo/streams-by-game?name=${encodeURIComponent(preferredGameName)}&first=${trovoStreamsLimit}`;
     const res = await fetch(url);
 
     if (!res.ok) {
@@ -26,3 +26,4 @@ export async function hydrateTwitchStreams() {
     return null;
   }
 }
+

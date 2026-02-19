@@ -56,7 +56,7 @@ export function renderList(listEl, resultsMetaEl) {
     .map((s) => {
       const isLive = s.isLive !== false;
       const tierLabel = ageTierLabel(getAgeTier(s.createdAt));
-      const platformLabel = s.platform === 'twitch' ? 'Twitch' : 'Kick';
+      const platformLabel = s.platform === 'twitch' ? 'Twitch' : s.platform === 'trovo' ? 'Trovo' : 'Other';
       const viewersLabel = isLive ? `${formatNumber(s.viewerCount)} viewers` : 'Currently offline';
       const avatarHtml = s.profileImageUrl
         ? `<img class="stream-card__avatar-img" src="${escapeHtml(s.profileImageUrl)}" alt="${escapeHtml(s.title)}" loading="lazy" />`
@@ -86,4 +86,3 @@ export function renderList(listEl, resultsMetaEl) {
     })
     .join('');
 }
-

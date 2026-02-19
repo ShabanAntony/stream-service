@@ -57,10 +57,12 @@ export function renderSlots(slotEls) {
       url.searchParams.set('autoplay', 'true');
       url.searchParams.set('muted', shouldUnmute ? 'false' : 'true');
       embedUrl = url.toString();
-    } else if (stream.platform === 'kick') {
-      const url = new URL(`https://player.kick.com/${stream.channel}`);
-      url.searchParams.set('autoplay', 'true');
-      url.searchParams.set('muted', shouldUnmute ? 'false' : 'true');
+    } else if (stream.platform === 'trovo') {
+      // Trovo embed requires domain whitelisting (see Trovo developer portal).
+      const url = new URL('https://player.trovo.live/embed/player');
+      url.searchParams.set('streamername', stream.channel);
+      url.searchParams.set('autoplay', '1');
+      url.searchParams.set('muted', shouldUnmute ? '0' : '1');
       embedUrl = url.toString();
     } else {
       embedUrl = stream.url;

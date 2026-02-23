@@ -289,6 +289,97 @@ function createTwitchAuthRouter({ twitchClient, clientId, redirectUri, scopes = 
     });
   });
 
+  router.get('/twitch/follows', async (req, res) => {
+    try {
+      const hydrated = await ensureFreshSession(req, res);
+      if (!hydrated) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      const { session } = hydrated;
+      const first = Math.min(Math.max(Number(req.query.first || 40), 1), 100);
+      const after = req.query.after ? String(req.query.after) : undefined;
+      console.log(
+        '[auth:twitch:follows] requesting follows',
+        {
+          userId: session.userId,
+          first,
+          after,
+        }
+      );
+      const payload = await twitchClient.getFollowedUsers({
+        accessToken: session.accessToken,
+        userId: session.userId,
+        first,
+        after,
+      });
+
+      console.log('[auth:twitch:follows] received', payload.data.length, 'items', 'pagination', payload.pagination);
+      res.json({
+        data: payload.data,
+        pagination: payload.pagination,
+      });
+    } catch (err) {
+      const status = err && err.statusCode ? err.statusCode : 500;
+      console.error('[auth:twitch:follows] failed', {
+        status,
+        message: String(err.message || err),
+        body: err?.body,
+      });
+      res.status(status).json({ error: String(err.message || err) });
+    }
+  });
+
+  router.get('/twitch/validate', async (req, res) => {
+    try {
+      const hydrated = await ensureFreshSession(req, res);
+      if (!hydrated) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      const { session } = hydrated;
+      const validation = await twitchClient.validateAccessToken({ accessToken: session.accessToken });
+      res.json({
+        status: 'ok',
+        validation,
+        scopes: session.scopes || [],
+        user: session.profile,
+      });
+    } catch (err) {
+      const status = err && err.statusCode ? err.statusCode : 500;
+      console.error('[auth:twitch:validate] failed', {
+        status,
+        message: String(err.message || err),
+        body: err?.body,
+      });
+      res.status(status).json({ error: String(err.message || err) });
+    }
+  });
+
+  router.get('/twitch/user', async (req, res) => {
+    try {
+      const hydrated = await ensureFreshSession(req, res);
+      if (!hydrated) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      const { session } = hydrated;
+      const user = await twitchClient.getCurrentUser({ accessToken: session.accessToken });
+      res.json({ user });
+    } catch (err) {
+      const status = err && err.statusCode ? err.statusCode : 500;
+      console.error('[auth:twitch:user] failed', {
+        status,
+        message: String(err.message || err),
+        body: err?.body,
+      });
+      res.status(status).json({ error: String(err.message || err) });
+    }
+  });
+
   router.post('/twitch/logout', async (req, res) => {
     const session = deleteSession(req, res);
     if (session && session.accessToken) {

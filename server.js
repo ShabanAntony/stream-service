@@ -43,6 +43,9 @@ app.use('/api/twitch', createTwitchRouter({ twitchClient }));
 app.use('/api/trovo', createTrovoRouter({ trovoClient }));
 
 app.use(express.static(process.cwd()));
+app.get(['/categories', '/categories/:id'], (req, res) => {
+  res.sendFile('index.html', { root: process.cwd() });
+});
 
 app.listen(port, () => {
   console.log(`Stream Hub running on http://localhost:${port}`);

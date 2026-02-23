@@ -4,16 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stream Hub</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="src/main.js"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/src/main.js"></script>
   </head>
   <body class="page js-page">
     <header class="header">
       <div class="header__left">
         <div class="logo" aria-label="Platform logo">SH</div>
         <nav class="header-nav" aria-label="Main navigation">
-          <a href="#" class="header-nav__link is-active">Directory</a>
-          <a href="#" class="header-nav__link">Multiview</a>
+          <a href="/" class="header-nav__link is-active js-nav-link js-route-link" data-route="/">Directory</a>
+          <a
+            href="/categories"
+            class="header-nav__link js-nav-link js-route-link"
+            data-route="/categories"
+          >
+            Categories
+          </a>
         </nav>
       </div>
 
@@ -57,110 +63,167 @@
     </header>
 
     <div class="app js-app">
-      <aside class="panel" aria-label="Directory">
-        <div class="panel__header">
-          <h2 class="panel__title">Directory</h2>
+      <section class="directory-page js-directory-page">
+        <aside class="panel" aria-label="Directory">
+          <div class="panel__header">
+            <h2 class="panel__title">Directory</h2>
+          </div>
+
+          <section class="filters" aria-label="Filters">
+            <div class="filters__row" role="group" aria-label="Sort">
+              <button class="chip is-active js-sort-btn" data-sort="online_desc" type="button">
+                Online high
+              </button>
+              <button class="chip js-sort-btn" data-sort="online_asc" type="button">
+                Online low
+              </button>
+              <button class="chip js-sort-btn" data-sort="created_desc" type="button">
+                New recruits
+              </button>
+              <button class="chip js-sort-btn" data-sort="created_asc" type="button">
+                Veterans
+              </button>
+            </div>
+
+            <div class="filters__row">
+              <label class="select" aria-label="Language">
+                <span class="select__label">Language</span>
+                <select class="select__field js-language-select">
+                  <option value="">All</option>
+                  <option value="en">English</option>
+                  <option value="ru">Russian</option>
+                  <option value="es">Spanish</option>
+                </select>
+              </label>
+
+              <label class="select" aria-label="Platform">
+                <span class="select__label">Platform</span>
+                <select class="select__field js-platform-select">
+                  <option value="">All</option>
+                  <option value="twitch">Twitch</option>
+                  <option value="trovo">Trovo</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="filters__row" role="group" aria-label="Account age">
+              <button class="chip js-age-btn" data-age="" type="button">Any age</button>
+              <button class="chip js-age-btn" data-age="recruit" type="button">Recruit</button>
+              <button class="chip js-age-btn" data-age="experienced" type="button">Experienced</button>
+              <button class="chip js-age-btn" data-age="veteran" type="button">Veteran</button>
+            </div>
+          </section>
+
+          <section class="followed" aria-label="Followed channels">
+            <div class="followed__header">
+              <h3 class="followed__title">Followed</h3>
+              <button class="chip js-followed-toggle" type="button">Followed only</button>
+            </div>
+            <div class="followed__list js-followed-list"></div>
+          </section>
+
+          <section class="stream-list" aria-label="Streams">
+            <div class="stream-list__meta js-results-meta">0 results</div>
+            <div class="stream-list__items js-stream-list"></div>
+          </section>
+        </aside>
+
+        <main class="workspace" aria-label="Multiview">
+          <div class="workspace__header">
+            <h2 class="workspace__title">Multiview (2x2)</h2>
+            <div class="workspace__hint">Click a stream to add it. Click a slot to focus. Keys: 1-4 target slot.</div>
+          </div>
+
+          <section class="multiview js-multiview" aria-label="Player slots">
+            <div class="slot js-slot" data-slot="1">
+              <div class="slot__top">
+                <div class="slot__title">Slot 1</div>
+                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 1">Clear</button>
+              </div>
+              <div class="slot__body js-slot-body">
+                <div class="slot__empty">Empty</div>
+              </div>
+            </div>
+
+            <div class="slot js-slot" data-slot="2">
+              <div class="slot__top">
+                <div class="slot__title">Slot 2</div>
+                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 2">Clear</button>
+              </div>
+              <div class="slot__body js-slot-body">
+                <div class="slot__empty">Empty</div>
+              </div>
+            </div>
+
+            <div class="slot js-slot" data-slot="3">
+              <div class="slot__top">
+                <div class="slot__title">Slot 3</div>
+                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 3">Clear</button>
+              </div>
+              <div class="slot__body js-slot-body">
+                <div class="slot__empty">Empty</div>
+              </div>
+            </div>
+
+            <div class="slot js-slot" data-slot="4">
+              <div class="slot__top">
+                <div class="slot__title">Slot 4</div>
+                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 4">Clear</button>
+              </div>
+              <div class="slot__body js-slot-body">
+                <div class="slot__empty">Empty</div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </section>
+
+      <section class="categories-page js-categories-page" hidden>
+        <div class="categories-page__filters">
+          <div class="categories-filter">
+            <div class="categories-view__header">
+              <div>
+                <p class="categories-view__eyebrow">Trending categories</p>
+                <h3 class="categories-view__title">Top 10 Categories</h3>
+                <p class="categories-view__hint">
+                  Filter by Twitch tags. Multiple tags use AND logic.
+                </p>
+              </div>
+            </div>
+
+            <section class="categories-filter__section" aria-label="Sort categories">
+              <h4 class="categories-filter__title">Sort</h4>
+              <div class="categories-filter__list" role="group" aria-label="Categories sort">
+                <button class="chip js-category-sort-btn" type="button" data-sort="viewer_desc">Popular</button>
+                <button class="chip js-category-sort-btn" type="button" data-sort="viewer_asc">Less popular</button>
+              </div>
+            </section>
+
+            <section class="categories-filter__section" aria-label="Active filters">
+              <div class="categories-filter__section-head">
+                <h4 class="categories-filter__title">Active tags</h4>
+                <button class="chip js-category-clear" type="button">Clear all</button>
+              </div>
+              <div class="category-filter js-category-active"></div>
+            </section>
+
+            <section class="categories-filter__section" aria-label="Tag filters">
+              <h4 class="categories-filter__title">Tags</h4>
+              <div class="tag-check-list js-category-tag-list"></div>
+            </section>
+          </div>
         </div>
-
-        <section class="filters" aria-label="Filters">
-          <div class="filters__row" role="group" aria-label="Sort">
-            <button class="chip is-active js-sort-btn" data-sort="online_desc" type="button">
-              Online high
-            </button>
-            <button class="chip js-sort-btn" data-sort="online_asc" type="button">
-              Online low
-            </button>
-            <button class="chip js-sort-btn" data-sort="created_desc" type="button">
-              New recruits
-            </button>
-            <button class="chip js-sort-btn" data-sort="created_asc" type="button">
-              Veterans
-            </button>
+        <section class="categories-page__main" aria-label="Categories list">
+          <div class="categories-page__main-head">
+            <div>
+              <p class="categories-view__eyebrow">Directory</p>
+              <h2 class="categories-view__title">Categories</h2>
+            </div>
+            <div class="stream-list__meta js-category-meta">0 categories</div>
           </div>
-
-          <div class="filters__row">
-            <label class="select" aria-label="Language">
-              <span class="select__label">Language</span>
-              <select class="select__field js-language-select">
-                <option value="">All</option>
-                <option value="en">English</option>
-                <option value="ru">Russian</option>
-                <option value="es">Spanish</option>
-              </select>
-            </label>
-
-            <label class="select" aria-label="Platform">
-              <span class="select__label">Platform</span>
-              <select class="select__field js-platform-select">
-                <option value="">All</option>
-                <option value="twitch">Twitch</option>
-                <option value="trovo">Trovo</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="filters__row" role="group" aria-label="Account age">
-            <button class="chip js-age-btn" data-age="" type="button">Any age</button>
-            <button class="chip js-age-btn" data-age="recruit" type="button">Recruit</button>
-            <button class="chip js-age-btn" data-age="experienced" type="button">Experienced</button>
-            <button class="chip js-age-btn" data-age="veteran" type="button">Veteran</button>
-          </div>
+          <div class="categories-page__grid js-category-grid"></div>
         </section>
-
-        <section class="stream-list" aria-label="Streams">
-          <div class="stream-list__meta js-results-meta">0 results</div>
-          <div class="stream-list__items js-stream-list"></div>
-        </section>
-      </aside>
-
-      <main class="workspace" aria-label="Multiview">
-        <div class="workspace__header">
-          <h2 class="workspace__title">Multiview (2x2)</h2>
-          <div class="workspace__hint">Click a stream to add it. Click a slot to focus. Keys: 1-4 target slot.</div>
-        </div>
-
-        <section class="multiview js-multiview" aria-label="Player slots">
-          <div class="slot js-slot" data-slot="1">
-            <div class="slot__top">
-              <div class="slot__title">Slot 1</div>
-              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 1">Clear</button>
-            </div>
-            <div class="slot__body js-slot-body">
-              <div class="slot__empty">Empty</div>
-            </div>
-          </div>
-
-          <div class="slot js-slot" data-slot="2">
-            <div class="slot__top">
-              <div class="slot__title">Slot 2</div>
-              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 2">Clear</button>
-            </div>
-            <div class="slot__body js-slot-body">
-              <div class="slot__empty">Empty</div>
-            </div>
-          </div>
-
-          <div class="slot js-slot" data-slot="3">
-            <div class="slot__top">
-              <div class="slot__title">Slot 3</div>
-              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 3">Clear</button>
-            </div>
-            <div class="slot__body js-slot-body">
-              <div class="slot__empty">Empty</div>
-            </div>
-          </div>
-
-          <div class="slot js-slot" data-slot="4">
-            <div class="slot__top">
-              <div class="slot__title">Slot 4</div>
-              <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 4">Clear</button>
-            </div>
-            <div class="slot__body js-slot-body">
-              <div class="slot__empty">Empty</div>
-            </div>
-          </div>
-        </section>
-      </main>
+      </section>
     </div>
   </body>
 </html>

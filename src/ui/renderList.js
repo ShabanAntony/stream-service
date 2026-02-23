@@ -39,7 +39,15 @@ function sortStreams(list) {
 export function renderList(listEl, resultsMetaEl) {
   if (!listEl || !resultsMetaEl) return;
 
-  const filtered = getStreams().filter((s) => matchesQuery(s) && matchesFilters(s));
+  const followedSet = state.followedFilter
+    ? new Set(state.followedChannels.map((channel) => channel.id))
+    : null;
+  const filtered = getStreams().filter((s) => {
+    if (!matchesQuery(s)) return false;
+    if (!matchesFilters(s)) return false;
+    if (followedSet && !followedSet.has(s.id)) return false;
+    return true;
+  });
   const finalList = sortStreams(filtered);
 
   const protocolHint = location.protocol === 'file:' ? ' (open via http://localhost:3000)' : '';

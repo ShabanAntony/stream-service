@@ -1,7 +1,18 @@
 import { hydrateTwitchStreams } from './api/hydrateTwitch.js';
 import { hydrateTrovoStreams } from './api/hydrateTrovo.js';
 import { logoutTwitch } from './api/auth.js';
-import { persist, runtime, setFallbackStreams, setStreams, state } from './store.js';
+import {
+  clearCategoriesTagFilters,
+  persist,
+  runtime,
+  setCategoriesSort,
+  setFallbackStreams,
+  setFollowedFilter,
+  setRoutePath,
+  setStreams,
+  state,
+  toggleCategoriesTagFilter,
+} from './store.js';
 import {
   applyActiveSlotUI,
   applyDock,
@@ -10,8 +21,20 @@ import {
   applyFocusToggle,
   applyTargetSlotUI,
 } from './ui/applyLayout.js';
+import { renderCategoriesView } from './ui/renderCategoriesView.js';
 import { renderList } from './ui/renderList.js';
 import { renderSlots } from './ui/renderSlots.js';
+
+function getRouteKind(pathname) {
+  const path = pathname || '/';
+  if (path === '/categories' || path === '/categories/') {
+    return 'categories';
+  }
+  if (/^\/categories\/[^/]+\/?$/.test(path)) {
+    return 'category-detail';
+  }
+  return 'directory';
+}
 
 export function bindEvents(refs) {
   const {
@@ -29,7 +52,64 @@ export function bindEvents(refs) {
     slotEls,
     authLoginBtn,
     authLogoutBtn,
+    followedToggleBtn,
+    navLinks,
+    directoryPage,
+    categoriesPage,
+    categoryGrid,
+    categoryActiveList,
+    categoryClearBtn,
+    categoryTagList,
+    categorySortButtons,
   } = refs;
+
+  const renderDirectoryList = () => {
+    if (listEl && resultsMetaEl) {
+      renderList(listEl, resultsMetaEl);
+    }
+  };
+
+  const renderCategories = () => {
+    renderCategoriesView(refs, state.categories);
+  };
+
+  const applyRouteUI = () => {
+    const routeKind = getRouteKind(state.routePath);
+    const isCategoriesRoute = routeKind === 'categories' || routeKind === 'category-detail';
+
+    if (page) {
+      page.classList.toggle('is-categories-route', isCategoriesRoute);
+      page.classList.toggle('is-directory-route', !isCategoriesRoute);
+    }
+
+    if (directoryPage) {
+      directoryPage.hidden = isCategoriesRoute;
+    }
+    if (categoriesPage) {
+      categoriesPage.hidden = !isCategoriesRoute;
+    }
+
+    navLinks.forEach((link) => {
+      const route = link.dataset.route || '/';
+      const active =
+        route === '/categories'
+          ? isCategoriesRoute
+          : !isCategoriesRoute && route === '/';
+      link.classList.toggle('is-active', active);
+    });
+
+    renderCategories();
+  };
+
+  const navigateTo = (path, push = true) => {
+    const nextPath = typeof path === 'string' && path ? path : '/';
+    if (push && window.location.pathname !== nextPath) {
+      window.history.pushState({}, '', nextPath);
+    }
+    setRoutePath(window.location.pathname || nextPath);
+    applyRouteUI();
+    persist();
+  };
 
   if (authLoginBtn) {
     authLoginBtn.addEventListener('click', () => {
@@ -51,6 +131,27 @@ export function bindEvents(refs) {
       }
     });
   }
+
+  if (followedToggleBtn) {
+    const updateFollowToggle = () => {
+      const active = state.followedFilter;
+      followedToggleBtn.classList.toggle('is-active', active);
+      followedToggleBtn.textContent = active ? 'Show all channels' : 'Followed only';
+    };
+
+    updateFollowToggle();
+    followedToggleBtn.addEventListener('click', () => {
+      setFollowedFilter(!state.followedFilter);
+      updateFollowToggle();
+      renderDirectoryList();
+      persist();
+    });
+  }
+
+  window.addEventListener('popstate', () => {
+    setRoutePath(window.location.pathname || '/');
+    applyRouteUI();
+  });
 
   dockButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -78,7 +179,7 @@ export function bindEvents(refs) {
     btn.addEventListener('click', () => {
       state.sort = btn.dataset.sort || 'online_desc';
       sortButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.sort === state.sort));
-      renderList(listEl, resultsMetaEl);
+      renderDirectoryList();
     });
   });
 
@@ -86,28 +187,28 @@ export function bindEvents(refs) {
     btn.addEventListener('click', () => {
       state.age = btn.dataset.age || '';
       ageButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.age === state.age));
-      renderList(listEl, resultsMetaEl);
+      renderDirectoryList();
     });
   });
 
   if (languageSelect) {
     languageSelect.addEventListener('change', () => {
       state.language = languageSelect.value;
-      renderList(listEl, resultsMetaEl);
+      renderDirectoryList();
     });
   }
 
   if (platformSelect) {
     platformSelect.addEventListener('change', () => {
       state.platform = platformSelect.value;
-      renderList(listEl, resultsMetaEl);
+      renderDirectoryList();
     });
   }
 
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       state.q = searchInput.value.trim();
-      renderList(listEl, resultsMetaEl);
+      renderDirectoryList();
     });
   }
 
@@ -116,7 +217,6 @@ export function bindEvents(refs) {
       state.targetSlot = Number(btn.dataset.slot) || 1;
       applyTargetSlotUI(slotButtons);
 
-      // Keep header target and clicked/active slot in sync.
       state.activeSlot = state.targetSlot;
       applyActiveSlotUI(slotEls);
       applyFocusTarget(slotEls);
@@ -130,7 +230,7 @@ export function bindEvents(refs) {
   slotEls.forEach((slotEl) => {
     slotEl.addEventListener('click', (e) => {
       const target = e.target;
-      if (target && target instanceof Element && target.closest('.js-slot-clear')) {
+      if (target instanceof Element && target.closest('.js-slot-clear')) {
         return;
       }
 
@@ -159,9 +259,69 @@ export function bindEvents(refs) {
     });
   });
 
+  if (categorySortButtons) {
+    categorySortButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const sort = btn.dataset.sort || 'viewer_desc';
+        setCategoriesSort(sort);
+        renderCategories();
+        persist();
+      });
+    });
+  }
+
+  if (categoryTagList) {
+    categoryTagList.addEventListener('change', (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLInputElement)) return;
+      if (!target.matches('.js-category-tag-checkbox')) return;
+      const tagId = target.dataset.tag;
+      if (!tagId) return;
+      toggleCategoriesTagFilter(tagId);
+      renderCategories();
+      persist();
+    });
+  }
+
+  if (categoryActiveList) {
+    categoryActiveList.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      const chip = target.closest('.js-category-tag-chip');
+      if (!chip) return;
+      const tagId = chip.getAttribute('data-tag');
+      if (!tagId) return;
+      toggleCategoriesTagFilter(tagId);
+      renderCategories();
+      persist();
+    });
+  }
+
+  if (categoryClearBtn) {
+    categoryClearBtn.addEventListener('click', () => {
+      if (!state.categoriesTagFilters.length) return;
+      clearCategoriesTagFilters();
+      renderCategories();
+      persist();
+    });
+  }
+
   document.addEventListener('click', (e) => {
     const target = e.target;
     if (!(target instanceof Element)) return;
+
+    const routeLink = target.closest('.js-route-link');
+    if (routeLink instanceof HTMLAnchorElement) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        return;
+      }
+      const route = routeLink.dataset.route || routeLink.getAttribute('href');
+      if (route && route.startsWith('/')) {
+        e.preventDefault();
+        navigateTo(route, true);
+        return;
+      }
+    }
 
     const addBtn = target.closest('.js-add-btn');
     if (addBtn) {
@@ -214,24 +374,27 @@ export function bindEvents(refs) {
     }
   });
 
-  // Initial load/hydration
+  setRoutePath(window.location.pathname || '/');
+  applyRouteUI();
+
   (async () => {
     setFallbackStreams();
-    renderList(listEl, resultsMetaEl);
+    renderDirectoryList();
     renderSlots(slotEls);
+    renderCategories();
 
     const [twitchData, trovoData] = await Promise.all([hydrateTwitchStreams(), hydrateTrovoStreams()]);
     const merged = [...(twitchData || []), ...(trovoData || [])];
 
     if (merged.length) {
       setStreams(merged, 'live');
-      renderList(listEl, resultsMetaEl);
+      renderDirectoryList();
       renderSlots(slotEls);
       return;
     }
 
     runtime.source = 'error';
     runtime.error = runtime.error || 'No data';
-    renderList(listEl, resultsMetaEl);
+    renderDirectoryList();
   })();
 }

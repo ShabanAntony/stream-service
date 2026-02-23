@@ -16,6 +16,14 @@ export const state = {
   hoverSlot: null,
   targetSlot: 1,
   activeSlot: 1,
+  followedChannels: [],
+  followedFilter: false,
+  categories: [],
+  categoriesLoading: false,
+  categoriesError: '',
+  categoriesTagFilters: [],
+  categoriesSort: 'viewer_desc',
+  routePath: '/',
   slots: {
     1: null,
     2: null,
@@ -46,6 +54,51 @@ export function getStreamById(id) {
   return streams.find((s) => s.id === id) || null;
 }
 
+export function setFollowedChannels(channels) {
+  state.followedChannels = Array.isArray(channels) ? [...channels] : [];
+}
+
+export function setFollowedFilter(active) {
+  state.followedFilter = Boolean(active);
+}
+
+export function setCategories(categories) {
+  state.categories = Array.isArray(categories) ? [...categories] : [];
+}
+
+export function setCategoriesLoading(loading) {
+  state.categoriesLoading = Boolean(loading);
+  if (loading) {
+    state.categoriesError = '';
+  }
+}
+
+export function setCategoriesError(message) {
+  state.categoriesError = String(message || 'Failed to load categories');
+  state.categoriesLoading = false;
+}
+
+export function toggleCategoriesTagFilter(tagId) {
+  const existing = state.categoriesTagFilters.includes(tagId);
+  if (existing) {
+    state.categoriesTagFilters = state.categoriesTagFilters.filter((id) => id !== tagId);
+  } else {
+    state.categoriesTagFilters = [...state.categoriesTagFilters, tagId];
+  }
+}
+
+export function clearCategoriesTagFilters() {
+  state.categoriesTagFilters = [];
+}
+
+export function setCategoriesSort(sort) {
+  state.categoriesSort = sort === 'viewer_asc' ? 'viewer_asc' : 'viewer_desc';
+}
+
+export function setRoutePath(path) {
+  state.routePath = typeof path === 'string' ? path : '/';
+}
+
 export function persist() {
   try {
     localStorage.setItem(
@@ -56,6 +109,9 @@ export function persist() {
         slots: state.slots,
         targetSlot: state.targetSlot,
         activeSlot: state.activeSlot,
+        followedFilter: state.followedFilter,
+        categoriesTagFilters: state.categoriesTagFilters,
+        categoriesSort: state.categoriesSort,
       })
     );
   } catch {
@@ -93,6 +149,18 @@ export function loadPersisted() {
 
     if (Number.isInteger(saved.activeSlot) && saved.activeSlot >= 1 && saved.activeSlot <= 4) {
       state.activeSlot = saved.activeSlot;
+    }
+
+    if (typeof saved.followedFilter === 'boolean') {
+      state.followedFilter = saved.followedFilter;
+    }
+
+    if (Array.isArray(saved.categoriesTagFilters)) {
+      state.categoriesTagFilters = [...saved.categoriesTagFilters];
+    }
+
+    if (saved.categoriesSort === 'viewer_asc' || saved.categoriesSort === 'viewer_desc') {
+      state.categoriesSort = saved.categoriesSort;
     }
   } catch {
     // ignore

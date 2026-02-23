@@ -20,10 +20,20 @@ function createTwitchRouter({ twitchClient }) {
     }
   });
 
+  router.get('/categories', async (req, res) => {
+    try {
+      const first = Math.min(Math.max(Number(req.query.first || 10), 3), 20);
+      const data = await twitchClient.getTopCategoriesWithTags({ first });
+      res.json({ data });
+    } catch (err) {
+      const status = err && err.statusCode ? err.statusCode : 500;
+      res.status(status).json({ error: String(err.message || err) });
+    }
+  });
+
   return router;
 }
 
 module.exports = {
   createTwitchRouter,
 };
-

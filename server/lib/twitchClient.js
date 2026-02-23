@@ -82,6 +82,7 @@ function createTwitchClient({ clientId, clientSecret }) {
       const text = await res.text();
       const err = new Error(`Twitch API error: ${res.status} ${text}`);
       err.statusCode = res.status === 401 ? 401 : 502;
+      err.body = text;
       throw err;
     }
 
@@ -225,12 +226,137 @@ function createTwitchClient({ clientId, clientSecret }) {
         createdAt: user.created_at ? String(user.created_at).slice(0, 10) : null,
         url: channel ? `https://www.twitch.tv/${channel}` : 'https://www.twitch.tv/',
         isLive: true,
+        tagIds: Array.isArray(s.tag_ids) ? [...s.tag_ids] : [],
       };
     });
   }
 
+  async function getGameById({ token, id }) {
+    const url = new URL('https://api.twitch.tv/helix/games');
+    url.searchParams.set('id', id);
+    const json = await fetchJson(url, token);
+    const games = Array.isArray(json.data) ? json.data : [];
+    return games[0] || null;
+  }
+
+  async function getTopCategoriesWithTags({ first = 10 }) {
+    const topFirst = Math.min(Math.max(Number(first || 10), 3), 20);
+    const token = await getAppToken();
+
+    const topUrl = new URL('https://api.twitch.tv/helix/games/top');
+    topUrl.searchParams.set('first', String(topFirst));
+    const topJson = await fetchJson(topUrl, token);
+    const games = Array.isArray(topJson.data) ? topJson.data : [];
+
+    if (!games.some((g) => g.name?.toLowerCase() === 'just chatting')) {
+      const jc = await getGameById({ token, id: '509658' });
+      if (jc) {
+        games.unshift(jc);
+      }
+    }
+
+    const categoryEntries = [];
+
+    for (const game of games.slice(0, topFirst)) {
+      const streamUrl = new URL('https://api.twitch.tv/helix/streams');
+      streamUrl.searchParams.set('first', '20');
+      streamUrl.searchParams.set('game_id', game.id);
+
+      let streamItems = [];
+      try {
+        const streamJson = await fetchJson(streamUrl, token);
+        streamItems = Array.isArray(streamJson.data) ? streamJson.data : [];
+      } catch {
+        streamItems = [];
+      }
+
+      const categoryTags = new Map();
+      let viewerCount = 0;
+
+      streamItems.forEach((stream) => {
+        viewerCount += Number(stream.viewer_count || 0);
+        const streamTags = Array.isArray(stream.tags) ? stream.tags : [];
+        streamTags.forEach((name) => {
+          if (!name || typeof name !== 'string') return;
+          const normalized = name.trim();
+          if (!normalized) return;
+          const tagId = `tag-${normalized.toLowerCase()}`;
+          if (!categoryTags.has(tagId)) {
+            categoryTags.set(tagId, {
+              id: tagId,
+              name: normalized,
+              description: '',
+            });
+          }
+        });
+      });
+
+      categoryEntries.push({
+        id: game.id,
+        name: game.name,
+        boxArtUrl: game.box_art_url,
+        viewerCount,
+        streamCount: streamItems.length,
+        tags: Array.from(categoryTags.values()),
+      });
+    }
+
+    return categoryEntries.map((category) => ({
+      id: category.id,
+      name: category.name,
+      boxArtUrl: category.boxArtUrl,
+      viewerCount: category.viewerCount,
+      streamCount: category.streamCount,
+      tags: category.tags,
+    }));
+  }
+
+  async function getFollowedUsers({ accessToken, userId, first = 20, after }) {
+    if (!userId) {
+      const err = new Error('Missing user id for follows request');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const pageSize = Math.min(Math.max(Number(first || 20), 1), 100);
+    const url = new URL('https://api.twitch.tv/helix/users/follows');
+    url.searchParams.set('from_id', String(userId));
+    url.searchParams.set('first', String(pageSize));
+    if (after) {
+      url.searchParams.set('after', String(after));
+    }
+
+    const json = await fetchUserJson(url, accessToken);
+    const followEntries = Array.isArray(json.data) ? json.data : [];
+    const userIds = Array.from(new Set(followEntries.map((rec) => rec.to_id).filter(Boolean)));
+    const usersById = userIds.length ? await getUsersById({ token: accessToken, userIds }) : new Map();
+
+    const data = followEntries.map((entry) => {
+      const user = usersById.get(entry.to_id) || {};
+      const login = (user.login || entry.to_login || '').toLowerCase();
+      const displayName = user.display_name || entry.to_name || login || 'Unknown';
+      const id = login ? `twitch-${login}` : `twitch-${entry.to_id}`;
+
+      return {
+        id,
+        login,
+        displayName,
+        url: login ? `https://www.twitch.tv/${login}` : `https://www.twitch.tv/${entry.to_id}`,
+        profileImageUrl: user.profile_image_url || null,
+        followedAt: entry.followed_at ? String(entry.followed_at) : null,
+      };
+    });
+
+    return {
+      data,
+      pagination: json.pagination || {},
+    };
+  }
+
   return {
     getStreamsByGameName,
+    getTopCategoriesWithTags,
+    getFollowedUsers,
     exchangeAuthCode,
     refreshUserToken,
     validateAccessToken,

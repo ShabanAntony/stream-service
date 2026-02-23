@@ -9,6 +9,8 @@ Stream Hub is a lightweight, self-hosted “multiview” hub for watching up to 
 - **Focus mode**: highlights the active slot (and hovered slot) with blur/saturation transitions while unmuting only the focused iframe; header and filters never blur.
 - **Docking toggle**: switch the directory panel left/right without reloading the page.
 - **Fallback data**: the app ships with sample streams so the UI stays populated if API requests fail or when offline.
+- **Followed channels**: once you log in with Twitch, the sidebar surfaces your followed channels with quick `Add` links and a “Followed only” filter for the directory.
+- **Categories view**: the new “Categories” tab pulls the top Twitch games + “Just Chatting”, shows Twitch’s genre tags, and lets you intersect those tags to filter the main list.
 
 ## Getting Started
 
@@ -33,12 +35,14 @@ Stream Hub is a lightweight, self-hosted “multiview” hub for watching up to 
 ## APIs & Data Flow
 
 - Directory calls `/api/twitch/streams-by-game?name=Dota%202&first=10` and `/api/trovo/streams-by-game?name=Dota%202&first=10` (configurable via `hydrate` helpers). Responses are normalized to `{ id, platform, channel, title, category, language, viewerCount, createdAt, url, profileImageUrl, isLive }`.
+- A new `/api/twitch/categories` endpoint returns the top 10 games + “Just Chatting” along with Twitch’s tag metadata, so the “Categories” tab can render clickable tags and the main directory can filter streams that match **all** active tags.
 - Click `Add` to map a stream ID into `state.slots`. When focus mode is active, the corresponding iframe is unmuted, and CSS classes update to keep the overlay synchronized.
 - Slot overlays include “Open” links, “Clear” actions, and badge states for missing/offline streams.
 
 ## Development Notes
 
 - `state` is persisted to `localStorage` (dock position, focus mode, selected slots). The UI hydrates from saved state on load.
+- The directory can also filter to “followed only” streams, and the sidebar now reflects your Twitch follows via `/api/auth/twitch/follows`.
 - Focus mode uses `slotEls` hover/active tracking to blur non-target slots while keeping Twitch/Trovo iframes muted unless selected. Sound permissions are ultimately limited by embed autoplay policies.
 - Embedded streams rely on Twitch/Trovo parent/whitelist configuration—if embedding is blocked, the overlay still exposes direct channel links.
 

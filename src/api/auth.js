@@ -26,3 +26,21 @@ export async function logoutTwitch() {
 
   return res.json();
 }
+
+export async function fetchFollowedChannels() {
+  try {
+    const res = await fetch('/api/auth/twitch/follows?first=40', {
+      credentials: 'same-origin',
+    });
+
+    if (!res.ok) {
+      return [];
+    }
+
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : [];
+  } catch (err) {
+    console.warn('Failed to load followed channels', err);
+    return [];
+  }
+}

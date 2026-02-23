@@ -17,5 +17,16 @@ export function getDomRefs() {
     authUserEl: document.querySelector('.js-auth-user'),
     authAvatarEl: document.querySelector('.js-auth-avatar'),
     authNameEl: document.querySelector('.js-auth-name'),
+    followedToggleBtn: document.querySelector('.js-followed-toggle'),
+    followedList: document.querySelector('.js-followed-list'),
+    navLinks: document.querySelectorAll('.js-nav-link'),
+    directoryPage: document.querySelector('.js-directory-page'),
+    categoriesPage: document.querySelector('.js-categories-page'),
+    categoryGrid: document.querySelector('.js-category-grid'),
+    categoryMetaEl: document.querySelector('.js-category-meta'),
+    categorySortButtons: document.querySelectorAll('.js-category-sort-btn'),
+    categoryTagList: document.querySelector('.js-category-tag-list'),
+    categoryActiveList: document.querySelector('.js-category-active'),
+    categoryClearBtn: document.querySelector('.js-category-clear'),
   };
 }

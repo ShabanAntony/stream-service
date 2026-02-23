@@ -47,8 +47,12 @@
           <button class="slot-toggle__btn js-slot-btn" data-slot="4" type="button">4</button>
         </div>
 
-        <button class="btn btn--ghost" type="button">Log in</button>
-        <button class="btn btn--primary" type="button">Sign up</button>
+        <button class="btn btn--primary js-auth-login" type="button">Log in with Twitch</button>
+        <div class="auth-user js-auth-user" hidden>
+          <img class="auth-user__avatar js-auth-avatar" alt="" />
+          <span class="auth-user__name js-auth-name"></span>
+        </div>
+        <button class="btn btn--ghost js-auth-logout" type="button" hidden>Log out</button>
       </div>
     </header>
 

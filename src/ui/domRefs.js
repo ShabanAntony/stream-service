@@ -12,5 +12,10 @@ export function getDomRefs() {
     platformSelect: document.querySelector('.js-platform-select'),
     slotButtons: document.querySelectorAll('.js-slot-btn'),
     slotEls: document.querySelectorAll('.js-slot'),
+    authLoginBtn: document.querySelector('.js-auth-login'),
+    authLogoutBtn: document.querySelector('.js-auth-logout'),
+    authUserEl: document.querySelector('.js-auth-user'),
+    authAvatarEl: document.querySelector('.js-auth-avatar'),
+    authNameEl: document.querySelector('.js-auth-name'),
   };
 }

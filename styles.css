@@ -121,6 +121,33 @@ body {
   font-weight: 650;
 }
 
+.auth-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+  max-width: 220px;
+}
+
+.auth-user__avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  object-fit: cover;
+  background-color: var(--bg-muted);
+}
+
+.auth-user__name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .dock-toggle,
 .slot-toggle {
   display: flex;

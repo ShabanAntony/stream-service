@@ -1,5 +1,6 @@
 import { hydrateTwitchStreams } from './api/hydrateTwitch.js';
 import { hydrateTrovoStreams } from './api/hydrateTrovo.js';
+import { logoutTwitch } from './api/auth.js';
 import { persist, runtime, setFallbackStreams, setStreams, state } from './store.js';
 import {
   applyActiveSlotUI,
@@ -26,7 +27,30 @@ export function bindEvents(refs) {
     platformSelect,
     slotButtons,
     slotEls,
+    authLoginBtn,
+    authLogoutBtn,
   } = refs;
+
+  if (authLoginBtn) {
+    authLoginBtn.addEventListener('click', () => {
+      const returnTo = window.location.pathname || '/';
+      const url = `/api/auth/twitch/login?returnTo=${encodeURIComponent(returnTo)}`;
+      window.location.assign(url);
+    });
+  }
+
+  if (authLogoutBtn) {
+    authLogoutBtn.addEventListener('click', async () => {
+      authLogoutBtn.disabled = true;
+      try {
+        await logoutTwitch();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        window.location.assign(window.location.pathname || '/');
+      }
+    });
+  }
 
   dockButtons.forEach((btn) => {
     btn.addEventListener('click', () => {

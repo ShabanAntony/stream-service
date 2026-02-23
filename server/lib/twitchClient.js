@@ -68,6 +68,103 @@ function createTwitchClient({ clientId, clientSecret }) {
     return res.json();
   }
 
+  async function fetchUserJson(url, accessToken) {
+    mustEnv(clientId, 'TWITCH_CLIENT_ID');
+
+    const res = await fetch(url, {
+      headers: {
+        'Client-ID': clientId,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      const err = new Error(`Twitch API error: ${res.status} ${text}`);
+      err.statusCode = res.status === 401 ? 401 : 502;
+      throw err;
+    }
+
+    return res.json();
+  }
+
+  async function exchangeAuthCode({ code, redirectUri }) {
+    mustEnv(clientId, 'TWITCH_CLIENT_ID');
+    mustEnv(clientSecret, 'TWITCH_CLIENT_SECRET');
+
+    const url = new URL('https://id.twitch.tv/oauth2/token');
+    url.searchParams.set('client_id', clientId);
+    url.searchParams.set('client_secret', clientSecret);
+    url.searchParams.set('code', code);
+    url.searchParams.set('grant_type', 'authorization_code');
+    url.searchParams.set('redirect_uri', redirectUri);
+
+    const res = await fetch(url, { method: 'POST' });
+    if (!res.ok) {
+      const text = await res.text();
+      const err = new Error(`Twitch auth code exchange failed: ${res.status} ${text}`);
+      err.statusCode = 502;
+      throw err;
+    }
+
+    return res.json();
+  }
+
+  async function refreshUserToken({ refreshToken }) {
+    mustEnv(clientId, 'TWITCH_CLIENT_ID');
+    mustEnv(clientSecret, 'TWITCH_CLIENT_SECRET');
+
+    const url = new URL('https://id.twitch.tv/oauth2/token');
+    url.searchParams.set('grant_type', 'refresh_token');
+    url.searchParams.set('refresh_token', refreshToken);
+    url.searchParams.set('client_id', clientId);
+    url.searchParams.set('client_secret', clientSecret);
+
+    const res = await fetch(url, { method: 'POST' });
+    if (!res.ok) {
+      const text = await res.text();
+      const err = new Error(`Twitch token refresh failed: ${res.status} ${text}`);
+      err.statusCode = 401;
+      throw err;
+    }
+
+    return res.json();
+  }
+
+  async function validateAccessToken({ accessToken }) {
+    const res = await fetch('https://id.twitch.tv/oauth2/validate', {
+      headers: {
+        Authorization: `OAuth ${accessToken}`,
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      const err = new Error(`Twitch token validate failed: ${res.status} ${text}`);
+      err.statusCode = res.status === 401 ? 401 : 502;
+      throw err;
+    }
+
+    return res.json();
+  }
+
+  async function getCurrentUser({ accessToken }) {
+    const json = await fetchUserJson('https://api.twitch.tv/helix/users', accessToken);
+    const users = Array.isArray(json.data) ? json.data : [];
+    return users[0] || null;
+  }
+
+  async function revokeToken({ token }) {
+    if (!token) return;
+    mustEnv(clientId, 'TWITCH_CLIENT_ID');
+
+    const url = new URL('https://id.twitch.tv/oauth2/revoke');
+    url.searchParams.set('client_id', clientId);
+    url.searchParams.set('token', token);
+
+    await fetch(url, { method: 'POST' }).catch(() => null);
+  }
+
   async function getUsersById({ token, userIds }) {
     const usersById = new Map();
 
@@ -134,10 +231,14 @@ function createTwitchClient({ clientId, clientSecret }) {
 
   return {
     getStreamsByGameName,
+    exchangeAuthCode,
+    refreshUserToken,
+    validateAccessToken,
+    getCurrentUser,
+    revokeToken,
   };
 }
 
 module.exports = {
   createTwitchClient,
 };
-

@@ -1,0 +1,351 @@
+{
+  "version": 1,
+  "updatedAt": "2026-02-24T00:00:00Z",
+  "source": {
+    "provider": "twitch",
+    "topCategoriesSnapshot": {
+      "endpoint": "/api/twitch/categories?first=30",
+      "capturedAt": null,
+      "note": "Curated starter top-30. Replace ranks from live API snapshot when server is running."
+    }
+  },
+  "tagCatalog": {
+    "action": { "label": "Action", "group": "genre" },
+    "adventure": { "label": "Adventure", "group": "genre" },
+    "rpg": { "label": "RPG", "group": "genre" },
+    "strategy": { "label": "Strategy", "group": "genre" },
+    "shooter": { "label": "Shooter", "group": "genre" },
+    "fps": { "label": "FPS", "group": "genre" },
+    "tps": { "label": "TPS", "group": "genre" },
+    "moba": { "label": "MOBA", "group": "genre" },
+    "battle-royale": { "label": "Battle Royale", "group": "genre" },
+    "survival": { "label": "Survival", "group": "genre" },
+    "horror": { "label": "Horror", "group": "genre" },
+    "puzzle": { "label": "Puzzle", "group": "genre" },
+    "simulation": { "label": "Simulation", "group": "genre" },
+    "racing": { "label": "Racing", "group": "genre" },
+    "sports": { "label": "Sports", "group": "genre" },
+    "fighting": { "label": "Fighting", "group": "genre" },
+    "platformer": { "label": "Platformer", "group": "genre" },
+    "sandbox": { "label": "Sandbox", "group": "genre" },
+    "open-world": { "label": "Open World", "group": "worldStyle" },
+    "story-rich": { "label": "Story Rich", "group": "worldStyle" },
+    "competitive": { "label": "Competitive", "group": "playStyle" },
+    "casual": { "label": "Casual", "group": "playStyle" },
+    "singleplayer": { "label": "Single-player", "group": "mode" },
+    "multiplayer": { "label": "Multiplayer", "group": "mode" },
+    "co-op": { "label": "Co-op", "group": "mode" },
+    "pvp": { "label": "PvP", "group": "mode" },
+    "fantasy": { "label": "Fantasy", "group": "worldStyle" },
+    "sci-fi": { "label": "Sci-Fi", "group": "worldStyle" },
+    "cyberpunk": { "label": "Cyberpunk", "group": "worldStyle" },
+    "post-apocalyptic": { "label": "Post-apocalyptic", "group": "worldStyle" }
+    ,
+    "irl": { "label": "IRL", "group": "content" }
+  },
+  "top30SnapshotOrder": [
+    { "rank": 1, "gameId": "509658", "name": "Just Chatting" },
+    { "rank": 2, "gameId": null, "name": "Grand Theft Auto V" },
+    { "rank": 3, "gameId": "29595", "name": "Dota 2" },
+    { "rank": 4, "gameId": "18122", "name": "World of Warcraft" },
+    { "rank": 5, "gameId": "21779", "name": "League of Legends" },
+    { "rank": 6, "gameId": "32399", "name": "Counter-Strike" },
+    { "rank": 7, "gameId": "33214", "name": "Fortnite" },
+    { "rank": 8, "gameId": null, "name": "Minecraft" },
+    { "rank": 9, "gameId": null, "name": "VALORANT" },
+    { "rank": 10, "gameId": null, "name": "Deadlock" },
+    { "rank": 11, "gameId": null, "name": "Apex Legends" },
+    { "rank": 12, "gameId": null, "name": "Call of Duty: Warzone" },
+    { "rank": 13, "gameId": null, "name": "Overwatch 2" },
+    { "rank": 14, "gameId": null, "name": "Rust" },
+    { "rank": 15, "gameId": null, "name": "Escape from Tarkov" },
+    { "rank": 16, "gameId": null, "name": "Teamfight Tactics" },
+    { "rank": 17, "gameId": null, "name": "Hearthstone" },
+    { "rank": 18, "gameId": null, "name": "EA Sports FC 25" },
+    { "rank": 19, "gameId": null, "name": "PUBG: BATTLEGROUNDS" },
+    { "rank": 20, "gameId": null, "name": "Path of Exile" },
+    { "rank": 21, "gameId": null, "name": "Diablo IV" },
+    { "rank": 22, "gameId": null, "name": "Tom Clancy's Rainbow Six Siege" },
+    { "rank": 23, "gameId": null, "name": "Rocket League" },
+    { "rank": 24, "gameId": null, "name": "Chess" },
+    { "rank": 25, "gameId": null, "name": "Old School RuneScape" },
+    { "rank": 26, "gameId": null, "name": "World of Tanks" },
+    { "rank": 27, "gameId": null, "name": "Slots" },
+    { "rank": 28, "gameId": null, "name": "Music" },
+    { "rank": 29, "gameId": null, "name": "Art" },
+    { "rank": 30, "gameId": null, "name": "IRL" }
+  ],
+  "categories": {
+    "509658": {
+      "providerGameId": "509658",
+      "slug": "just-chatting",
+      "displayName": "Just Chatting",
+      "provider": "twitch",
+      "tagSlugs": ["casual", "multiplayer", "irl"],
+      "status": "reviewed",
+      "notes": "Content/theme category, not a game."
+    },
+    "29595": {
+      "providerGameId": "29595",
+      "slug": "dota-2",
+      "displayName": "Dota 2",
+      "provider": "twitch",
+      "tagSlugs": ["moba", "strategy", "action", "competitive", "multiplayer", "pvp", "fantasy"],
+      "status": "reviewed"
+    },
+    "21779": {
+      "providerGameId": "21779",
+      "slug": "league-of-legends",
+      "displayName": "League of Legends",
+      "provider": "twitch",
+      "tagSlugs": ["moba", "strategy", "action", "competitive", "multiplayer", "pvp", "fantasy"],
+      "status": "reviewed"
+    },
+    "32399": {
+      "providerGameId": "32399",
+      "slug": "counter-strike",
+      "displayName": "Counter-Strike",
+      "matchNames": ["Counter-Strike 2"],
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "competitive", "multiplayer", "pvp"],
+      "status": "reviewed"
+    },
+    "33214": {
+      "providerGameId": "33214",
+      "slug": "fortnite",
+      "displayName": "Fortnite",
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "battle-royale", "action", "competitive", "multiplayer", "pvp"],
+      "status": "reviewed"
+    },
+    "18122": {
+      "providerGameId": "18122",
+      "slug": "world-of-warcraft",
+      "displayName": "World of Warcraft",
+      "provider": "twitch",
+      "tagSlugs": ["rpg", "multiplayer", "fantasy", "open-world"],
+      "status": "reviewed"
+    },
+    "name:grand-theft-auto-v": {
+      "slug": "grand-theft-auto-v",
+      "displayName": "Grand Theft Auto V",
+      "provider": "twitch",
+      "tagSlugs": ["action", "adventure", "sandbox", "open-world", "story-rich", "multiplayer"],
+      "status": "seeded"
+    },
+    "name:minecraft": {
+      "slug": "minecraft",
+      "displayName": "Minecraft",
+      "provider": "twitch",
+      "tagSlugs": ["sandbox", "survival", "adventure", "casual", "singleplayer", "multiplayer"],
+      "status": "seeded"
+    },
+    "name:valorant": {
+      "slug": "valorant",
+      "displayName": "VALORANT",
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:deadlock": {
+      "slug": "deadlock",
+      "displayName": "Deadlock",
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "moba", "strategy", "competitive", "multiplayer", "pvp", "sci-fi"],
+      "status": "seeded"
+    },
+    "name:apex-legends": {
+      "slug": "apex-legends",
+      "displayName": "Apex Legends",
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "battle-royale", "competitive", "multiplayer", "pvp", "sci-fi"],
+      "status": "seeded"
+    },
+    "name:call-of-duty-warzone": {
+      "slug": "call-of-duty-warzone",
+      "displayName": "Call of Duty: Warzone",
+      "matchNames": ["Call of Duty: Warzone 2.0"],
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "battle-royale", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:overwatch-2": {
+      "slug": "overwatch-2",
+      "displayName": "Overwatch 2",
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "action", "competitive", "multiplayer", "pvp", "sci-fi"],
+      "status": "seeded"
+    },
+    "name:rust": {
+      "slug": "rust",
+      "displayName": "Rust",
+      "provider": "twitch",
+      "tagSlugs": ["survival", "sandbox", "action", "multiplayer", "pvp", "post-apocalyptic"],
+      "status": "seeded"
+    },
+    "name:escape-from-tarkov": {
+      "slug": "escape-from-tarkov",
+      "displayName": "Escape from Tarkov",
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "survival", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:teamfight-tactics": {
+      "slug": "teamfight-tactics",
+      "displayName": "Teamfight Tactics",
+      "provider": "twitch",
+      "tagSlugs": ["strategy", "competitive", "multiplayer", "pvp", "fantasy"],
+      "status": "seeded"
+    },
+    "name:hearthstone": {
+      "slug": "hearthstone",
+      "displayName": "Hearthstone",
+      "provider": "twitch",
+      "tagSlugs": ["strategy", "competitive", "casual", "multiplayer", "pvp", "fantasy"],
+      "status": "seeded"
+    },
+    "name:ea-sports-fc-25": {
+      "slug": "ea-sports-fc-25",
+      "displayName": "EA Sports FC 25",
+      "matchNames": ["EA Sports FC 24", "EA Sports FC"],
+      "provider": "twitch",
+      "tagSlugs": ["sports", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:pubg-battlegrounds": {
+      "slug": "pubg-battlegrounds",
+      "displayName": "PUBG: BATTLEGROUNDS",
+      "matchNames": ["PUBG: Battlegrounds", "PLAYERUNKNOWN'S BATTLEGROUNDS"],
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "battle-royale", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:path-of-exile": {
+      "slug": "path-of-exile",
+      "displayName": "Path of Exile",
+      "matchNames": ["Path of Exile 2"],
+      "provider": "twitch",
+      "tagSlugs": ["rpg", "action", "fantasy", "multiplayer"],
+      "status": "seeded"
+    },
+    "name:diablo-iv": {
+      "slug": "diablo-iv",
+      "displayName": "Diablo IV",
+      "provider": "twitch",
+      "tagSlugs": ["rpg", "action", "fantasy", "multiplayer", "open-world"],
+      "status": "seeded"
+    },
+    "name:rainbow-six-siege": {
+      "slug": "rainbow-six-siege",
+      "displayName": "Tom Clancy's Rainbow Six Siege",
+      "matchNames": ["Rainbow Six Siege", "Tom Clancy's Rainbow Six Siege X"],
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "fps", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:rocket-league": {
+      "slug": "rocket-league",
+      "displayName": "Rocket League",
+      "provider": "twitch",
+      "tagSlugs": ["sports", "racing", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:chess": {
+      "slug": "chess",
+      "displayName": "Chess",
+      "provider": "twitch",
+      "tagSlugs": ["strategy", "competitive", "casual", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:old-school-runescape": {
+      "slug": "old-school-runescape",
+      "displayName": "Old School RuneScape",
+      "matchNames": ["RuneScape", "Old School RuneScape (OSRS)"],
+      "provider": "twitch",
+      "tagSlugs": ["rpg", "fantasy", "multiplayer", "open-world"],
+      "status": "seeded"
+    },
+    "name:world-of-tanks": {
+      "slug": "world-of-tanks",
+      "displayName": "World of Tanks",
+      "provider": "twitch",
+      "tagSlugs": ["action", "strategy", "competitive", "multiplayer", "pvp"],
+      "status": "seeded"
+    },
+    "name:slots": {
+      "slug": "slots",
+      "displayName": "Slots",
+      "provider": "twitch",
+      "tagSlugs": ["casual", "simulation", "irl"],
+      "status": "seeded"
+    },
+    "name:music": {
+      "slug": "music",
+      "displayName": "Music",
+      "provider": "twitch",
+      "tagSlugs": ["casual", "multiplayer", "irl"],
+      "status": "seeded"
+    },
+    "name:art": {
+      "slug": "art",
+      "displayName": "Art",
+      "provider": "twitch",
+      "tagSlugs": ["casual", "irl"],
+      "status": "seeded"
+    },
+    "name:irl": {
+      "slug": "irl",
+      "displayName": "IRL",
+      "provider": "twitch",
+      "tagSlugs": ["casual", "multiplayer", "irl"],
+      "status": "seeded"
+    },
+    "name:marvel-rivals": {
+      "slug": "marvel-rivals",
+      "displayName": "Marvel Rivals",
+      "provider": "twitch",
+      "tagSlugs": ["shooter", "tps", "action", "competitive", "multiplayer", "pvp", "sci-fi"],
+      "status": "seeded"
+    },
+    "name:reanimal": {
+      "slug": "reanimal",
+      "displayName": "REANIMAL",
+      "provider": "twitch",
+      "tagSlugs": ["horror", "puzzle", "adventure", "co-op", "singleplayer"],
+      "status": "seeded"
+    },
+    "name:super-battle-golf": {
+      "slug": "super-battle-golf",
+      "displayName": "Super Battle Golf",
+      "provider": "twitch",
+      "tagSlugs": ["sports", "casual", "multiplayer"],
+      "status": "seeded"
+    },
+    "name:warcraft-iii": {
+      "slug": "warcraft-iii",
+      "displayName": "Warcraft III",
+      "matchNames": ["Warcraft III: Reforged"],
+      "provider": "twitch",
+      "tagSlugs": ["strategy", "competitive", "multiplayer", "pvp", "fantasy"],
+      "status": "seeded"
+    },
+    "__TEMPLATE_NEW_CATEGORY__": {
+      "slug": "replace-with-slug",
+      "displayName": "Replace With Name",
+      "provider": "twitch",
+      "tagSlugs": [],
+      "status": "needs_review",
+      "notes": "Auto-created because category entered top list."
+    }
+  },
+  "autoOnboardingRules": {
+    "enabled": true,
+    "onUnknownTopCategory": {
+      "createCategoryStub": true,
+      "defaultStatus": "needs_review",
+      "defaultTagSlugs": []
+    },
+    "preserveManualTags": true,
+    "syncFieldsFromTwitch": ["displayName"]
+  }
+}

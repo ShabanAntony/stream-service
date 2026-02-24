@@ -4,7 +4,9 @@ import { ageTierLabel, formatNumber, getAgeTier } from '../utils/format.js';
 
 function matchesQuery(stream) {
   if (!state.q) return true;
-  const q = state.q.toLowerCase();
+  let q = state.q.toLowerCase().trim();
+  q = q.replace(/^https?:\/\/(www\.)?twitch\.tv\//, '');
+  q = q.split(/[/?#]/)[0] || q;
   return (
     stream.title.toLowerCase().includes(q) ||
     stream.channel.toLowerCase().includes(q) ||
@@ -84,10 +86,12 @@ export function renderList(listEl, resultsMetaEl) {
             </div>
           </div>
           <div class="stream-card__actions">
-            <button class="action-btn action-btn--primary js-add-btn" type="button" data-id="${s.id}" ${isLive ? '' : 'disabled'}>
+            <button class="action-btn action-btn--primary js-watch-slot-btn" type="button" data-id="${s.id}" ${isLive ? '' : 'disabled'}>
+              Watch
+            </button>
+            <button class="action-btn js-add-btn" type="button" data-id="${s.id}" ${isLive ? '' : 'disabled'}>
               Add
             </button>
-            <a class="action-btn" href="${s.url}" target="_blank" rel="noreferrer">Open</a>
           </div>
         </article>
       `;

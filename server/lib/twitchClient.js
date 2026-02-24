@@ -240,7 +240,7 @@ function createTwitchClient({ clientId, clientSecret }) {
   }
 
   async function getTopCategoriesWithTags({ first = 10 }) {
-    const topFirst = Math.min(Math.max(Number(first || 10), 3), 20);
+    const topFirst = Math.min(Math.max(Number(first || 10), 3), 30);
     const token = await getAppToken();
 
     const topUrl = new URL('https://api.twitch.tv/helix/games/top');

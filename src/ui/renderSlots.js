@@ -2,8 +2,17 @@ import { getStreamById, state } from '../store.js';
 import { escapeHtml } from '../utils/escapeHtml.js';
 
 export function renderSlots(slotEls) {
+  const occupiedSlotNumbers = [1, 2, 3, 4].filter((slot) => Boolean(state.slots[String(slot)]));
+  const highestOccupiedSlot = occupiedSlotNumbers.length ? Math.max(...occupiedSlotNumbers) : 1;
+  const visibleSlotsCount = Math.max(1, Math.min(4, highestOccupiedSlot));
+  const multiviewEl = slotEls[0]?.closest('.js-multiview');
+  if (multiviewEl) {
+    multiviewEl.setAttribute('data-layout', String(visibleSlotsCount));
+  }
+
   slotEls.forEach((slotEl) => {
     const slotNumber = Number(slotEl.dataset.slot);
+    slotEl.hidden = slotNumber > visibleSlotsCount;
     const isActive = slotNumber === state.activeSlot;
     const streamId = state.slots[String(slotNumber)];
     const body = slotEl.querySelector('.js-slot-body');

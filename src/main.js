@@ -1,5 +1,6 @@
 import { fetchAuthMe, fetchFollowedChannels } from './api/auth.js';
 import { fetchCategories } from './api/categories.js';
+import { applyCategoryTaxonomy, fetchCategoryTaxonomy } from './api/categoryTaxonomy.js';
 import {
   loadPersisted,
   setCategories,
@@ -56,10 +57,21 @@ function init() {
     setCategoriesLoading(true);
     renderCategoriesView(refs, []);
     try {
-      const categories = await fetchCategories();
-      setCategories(categories);
+      const [categories, taxonomy] = await Promise.all([
+        fetchCategories(),
+        fetchCategoryTaxonomy().catch((error) => {
+          console.error('[taxonomy] load failed', error);
+          return null;
+        }),
+      ]);
+
+      const enriched = applyCategoryTaxonomy(categories, taxonomy);
+      console.info('[taxonomy] applied', enriched.meta);
+
+      setCategories(enriched.data);
       setCategoriesLoading(false);
-      renderCategoriesView(refs, categories);
+      renderCategoriesView(refs, enriched.data);
+      window.dispatchEvent(new Event('popstate'));
     } catch (err) {
       console.error('[categories] render load failed', err);
       setCategories([]);

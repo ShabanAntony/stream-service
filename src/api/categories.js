@@ -1,6 +1,6 @@
 export async function fetchCategories() {
   try {
-    const res = await fetch('/api/twitch/categories', {
+    const res = await fetch('/api/twitch/categories?first=30', {
       credentials: 'same-origin',
     });
 

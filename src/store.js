@@ -23,6 +23,14 @@ export const state = {
   categoriesError: '',
   categoriesTagFilters: [],
   categoriesSort: 'viewer_desc',
+  categoryStreams: [],
+  categoryStreamsLoading: false,
+  categoryStreamsError: '',
+  multiviewContext: {
+    categoryId: null,
+    categoryName: '',
+    platform: 'twitch',
+  },
   routePath: '/',
   slots: {
     1: null,
@@ -74,8 +82,35 @@ export function setCategoriesLoading(loading) {
 }
 
 export function setCategoriesError(message) {
-  state.categoriesError = String(message || 'Failed to load categories');
+  state.categoriesError =
+    message === '' ? '' : String(message || 'Failed to load categories');
   state.categoriesLoading = false;
+}
+
+export function setCategoryStreams(streams) {
+  state.categoryStreams = Array.isArray(streams) ? [...streams] : [];
+}
+
+export function setCategoryStreamsLoading(loading) {
+  state.categoryStreamsLoading = Boolean(loading);
+  if (loading) {
+    state.categoryStreamsError = '';
+  }
+}
+
+export function setCategoryStreamsError(message) {
+  state.categoryStreamsError =
+    message === '' ? '' : String(message || 'Failed to load category streams');
+  state.categoryStreamsLoading = false;
+}
+
+export function setMultiviewContext(context) {
+  const next = context && typeof context === 'object' ? context : {};
+  state.multiviewContext = {
+    categoryId: next.categoryId ? String(next.categoryId) : null,
+    categoryName: next.categoryName ? String(next.categoryName) : '',
+    platform: next.platform === 'trovo' ? 'trovo' : 'twitch',
+  };
 }
 
 export function toggleCategoriesTagFilter(tagId) {

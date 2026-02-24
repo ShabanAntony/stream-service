@@ -22,7 +22,7 @@ function createTwitchRouter({ twitchClient }) {
 
   router.get('/categories', async (req, res) => {
     try {
-      const first = Math.min(Math.max(Number(req.query.first || 10), 3), 20);
+      const first = Math.min(Math.max(Number(req.query.first || 10), 3), 30);
       const data = await twitchClient.getTopCategoriesWithTags({ first });
       res.json({ data });
     } catch (err) {

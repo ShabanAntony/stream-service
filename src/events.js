@@ -1,13 +1,18 @@
 import { hydrateTwitchStreams } from './api/hydrateTwitch.js';
 import { hydrateTrovoStreams } from './api/hydrateTrovo.js';
 import { logoutTwitch } from './api/auth.js';
+import { fetchCategoryStreamsByName } from './api/categoryStreams.js';
 import {
   clearCategoriesTagFilters,
   persist,
   runtime,
   setCategoriesSort,
+  setCategoryStreams,
+  setCategoryStreamsError,
+  setCategoryStreamsLoading,
   setFallbackStreams,
   setFollowedFilter,
+  setMultiviewContext,
   setRoutePath,
   setStreams,
   state,
@@ -27,13 +32,16 @@ import { renderSlots } from './ui/renderSlots.js';
 
 function getRouteKind(pathname) {
   const path = pathname || '/';
-  if (path === '/categories' || path === '/categories/') {
+  if (path === '/' || path === '/categories' || path === '/categories/') {
     return 'categories';
+  }
+  if (path === '/multiview' || path === '/multiview/') {
+    return 'multiview';
   }
   if (/^\/categories\/[^/]+\/?$/.test(path)) {
     return 'category-detail';
   }
-  return 'directory';
+  return 'multiview';
 }
 
 export function bindEvents(refs) {
@@ -73,17 +81,158 @@ export function bindEvents(refs) {
     renderCategoriesView(refs, state.categories);
   };
 
+  const rerenderByRoute = () => {
+    const routeKind = getRouteKind(state.routePath);
+    if (routeKind === 'multiview') {
+      renderDirectoryList();
+      return;
+    }
+    if (routeKind === 'categories' || routeKind === 'category-detail') {
+      renderCategories();
+      return;
+    }
+    renderDirectoryList();
+  };
+
+  const getNextAddSlot = () => {
+    for (let slot = 1; slot <= 4; slot += 1) {
+      if (!state.slots[String(slot)]) {
+        return slot;
+      }
+    }
+    return 4;
+  };
+
+  const getFilledSlotsCount = () => Object.values(state.slots).filter(Boolean).length;
+  const getHighestOccupiedSlot = () => {
+    const occupied = [1, 2, 3, 4].filter((slot) => Boolean(state.slots[String(slot)]));
+    return occupied.length ? Math.max(...occupied) : 0;
+  };
+
+  const updateHeaderControlsVisibility = () => {
+    const routeKind = getRouteKind(state.routePath);
+    const isMultiviewRoute = routeKind === 'multiview';
+    const filledCount = getFilledSlotsCount();
+    const visibleSlotButtonsCount = getHighestOccupiedSlot();
+
+    if (focusToggle) {
+      focusToggle.hidden = !isMultiviewRoute || filledCount < 2;
+    }
+
+    const slotToggleEl = slotButtons[0]?.closest('.slot-toggle');
+    if (slotToggleEl) {
+      slotToggleEl.hidden = !isMultiviewRoute || visibleSlotButtonsCount < 2;
+    }
+
+    slotButtons.forEach((btn) => {
+      const slot = Number(btn.dataset.slot) || 0;
+      btn.hidden = !isMultiviewRoute || slot > visibleSlotButtonsCount || visibleSlotButtonsCount < 2;
+    });
+  };
+
+  let categoryStreamsRequestId = 0;
+
+  const getSelectedCategoryFromRoute = () => {
+    const match = (state.routePath || '').match(/^\/categories\/([^/]+)\/?$/);
+    if (!match) return null;
+    const categoryId = decodeURIComponent(match[1]);
+    return state.categories.find((item) => item.id === categoryId) || null;
+  };
+
+  const ensureCategoryStreamsLoaded = async (category) => {
+    if (!category || !category.name) return;
+    const requestId = ++categoryStreamsRequestId;
+    setCategoryStreamsLoading(true);
+    renderCategories();
+
+    try {
+      const streams = await fetchCategoryStreamsByName(category.name, 40);
+      if (requestId !== categoryStreamsRequestId) return;
+      setCategoryStreams(streams);
+      setCategoryStreamsLoading(false);
+      setCategoryStreamsError('');
+      renderCategories();
+      return streams;
+    } catch (error) {
+      if (requestId !== categoryStreamsRequestId) return;
+      console.error('[category-streams] load failed', error);
+      setCategoryStreams([]);
+      setCategoryStreamsError(error instanceof Error ? error.message : 'Failed to load category streams');
+      renderCategories();
+      return [];
+    }
+  };
+
+  const syncMultiviewContextFromUrl = () => {
+    const url = new URL(window.location.href);
+    const categoryId = url.searchParams.get('categoryId');
+    const categoryName = url.searchParams.get('categoryName');
+    const platform = url.searchParams.get('platform');
+    if (!categoryId && !categoryName) {
+      setMultiviewContext({ categoryId: null, categoryName: '', platform: 'twitch' });
+      return;
+    }
+    setMultiviewContext({
+      categoryId,
+      categoryName,
+      platform: platform === 'trovo' ? 'trovo' : 'twitch',
+    });
+  };
+
+  const seedMultiviewSlotFromQuery = (streams = []) => {
+    const url = new URL(window.location.href);
+    const seedId = url.searchParams.get('seed');
+    if (!seedId) return;
+
+    const seedStream = streams.find((item) => item.id === seedId);
+    if (!seedStream) return;
+
+    state.slots = {
+      1: seedStream.id,
+      2: null,
+      3: null,
+      4: null,
+    };
+    state.activeSlot = 1;
+    state.targetSlot = 1;
+    applyTargetSlotUI(slotButtons);
+    applyActiveSlotUI(slotEls);
+    applyFocusTarget(slotEls);
+    renderSlots(slotEls);
+    persist();
+  };
+
+  const ensureMultiviewSidebarContext = async () => {
+    syncMultiviewContextFromUrl();
+    if (!state.multiviewContext.categoryName) {
+      return;
+    }
+    const streams = await ensureCategoryStreamsLoaded({
+      id: state.multiviewContext.categoryId,
+      name: state.multiviewContext.categoryName,
+    });
+    if (Array.isArray(streams) && streams.length) {
+      setStreams(streams, 'live');
+      renderDirectoryList();
+      renderSlots(slotEls);
+      seedMultiviewSlotFromQuery(streams);
+    }
+  };
+
   const applyRouteUI = () => {
     const routeKind = getRouteKind(state.routePath);
     const isCategoriesRoute = routeKind === 'categories' || routeKind === 'category-detail';
+    const isMultiviewRoute = routeKind === 'multiview';
+    const isCategoryDetailRoute = routeKind === 'category-detail';
 
     if (page) {
       page.classList.toggle('is-categories-route', isCategoriesRoute);
-      page.classList.toggle('is-directory-route', !isCategoriesRoute);
+      page.classList.toggle('is-directory-route', isMultiviewRoute);
+      page.classList.toggle('is-category-detail-route', isCategoryDetailRoute);
     }
 
     if (directoryPage) {
-      directoryPage.hidden = isCategoriesRoute;
+      directoryPage.hidden = !(isMultiviewRoute || isCategoryDetailRoute);
     }
     if (categoriesPage) {
       categoriesPage.hidden = !isCategoriesRoute;
@@ -94,16 +243,35 @@ export function bindEvents(refs) {
       const active =
         route === '/categories'
           ? isCategoriesRoute
-          : !isCategoriesRoute && route === '/';
+          : isMultiviewRoute && route === '/multiview';
       link.classList.toggle('is-active', active);
     });
 
+    if (searchInput) {
+      if (routeKind === 'multiview') {
+        searchInput.placeholder = 'Find by Twitch login...';
+      } else if (routeKind === 'category-detail') {
+        searchInput.placeholder = 'Search streamers in category...';
+      } else if (routeKind === 'categories') {
+        searchInput.placeholder = 'Search categories...';
+      }
+    }
+
+    updateHeaderControlsVisibility();
     renderCategories();
+    if (isCategoriesRoute && routeKind === 'category-detail') {
+      const selectedCategory = getSelectedCategoryFromRoute();
+      void ensureCategoryStreamsLoaded(selectedCategory);
+    }
+    if (isMultiviewRoute) {
+      void ensureMultiviewSidebarContext();
+    }
   };
 
   const navigateTo = (path, push = true) => {
     const nextPath = typeof path === 'string' && path ? path : '/';
-    if (push && window.location.pathname !== nextPath) {
+    const currentFullPath = `${window.location.pathname}${window.location.search}`;
+    if (push && currentFullPath !== nextPath) {
       window.history.pushState({}, '', nextPath);
     }
     setRoutePath(window.location.pathname || nextPath);
@@ -113,7 +281,7 @@ export function bindEvents(refs) {
 
   if (authLoginBtn) {
     authLoginBtn.addEventListener('click', () => {
-      const returnTo = window.location.pathname || '/';
+      const returnTo = `${window.location.pathname || '/'}${window.location.search || ''}`;
       const url = `/api/auth/twitch/login?returnTo=${encodeURIComponent(returnTo)}`;
       window.location.assign(url);
     });
@@ -143,7 +311,7 @@ export function bindEvents(refs) {
     followedToggleBtn.addEventListener('click', () => {
       setFollowedFilter(!state.followedFilter);
       updateFollowToggle();
-      renderDirectoryList();
+      rerenderByRoute();
       persist();
     });
   }
@@ -179,7 +347,7 @@ export function bindEvents(refs) {
     btn.addEventListener('click', () => {
       state.sort = btn.dataset.sort || 'online_desc';
       sortButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.sort === state.sort));
-      renderDirectoryList();
+      rerenderByRoute();
     });
   });
 
@@ -187,28 +355,28 @@ export function bindEvents(refs) {
     btn.addEventListener('click', () => {
       state.age = btn.dataset.age || '';
       ageButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.age === state.age));
-      renderDirectoryList();
+      rerenderByRoute();
     });
   });
 
   if (languageSelect) {
     languageSelect.addEventListener('change', () => {
       state.language = languageSelect.value;
-      renderDirectoryList();
+      rerenderByRoute();
     });
   }
 
   if (platformSelect) {
     platformSelect.addEventListener('change', () => {
       state.platform = platformSelect.value;
-      renderDirectoryList();
+      rerenderByRoute();
     });
   }
 
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       state.q = searchInput.value.trim();
-      renderDirectoryList();
+      rerenderByRoute();
     });
   }
 
@@ -323,15 +491,55 @@ export function bindEvents(refs) {
       }
     }
 
+    const watchBtn = target.closest('.js-watch-stream-btn');
+    if (watchBtn) {
+      const streamId = watchBtn.getAttribute('data-stream-id');
+      const categoryId = watchBtn.getAttribute('data-category-id');
+      const categoryName = watchBtn.getAttribute('data-category-name') || '';
+      if (!streamId) return;
+
+      const nextUrl = new URL('/multiview', window.location.origin);
+      if (categoryId) nextUrl.searchParams.set('categoryId', categoryId);
+      if (categoryName) nextUrl.searchParams.set('categoryName', categoryName);
+      nextUrl.searchParams.set('platform', 'twitch');
+      nextUrl.searchParams.set('seed', streamId);
+
+      e.preventDefault();
+      navigateTo(`${nextUrl.pathname}${nextUrl.search}`, true);
+      return;
+    }
+
     const addBtn = target.closest('.js-add-btn');
     if (addBtn) {
       const id = addBtn.getAttribute('data-id');
       if (id) {
-        state.slots[String(state.targetSlot)] = id;
-        state.activeSlot = state.targetSlot;
+        const slotToUse = getNextAddSlot();
+        state.slots[String(slotToUse)] = id;
+        state.targetSlot = slotToUse;
+        state.activeSlot = slotToUse;
         applyActiveSlotUI(slotEls);
+        applyTargetSlotUI(slotButtons);
         applyFocusTarget(slotEls);
         renderSlots(slotEls);
+        updateHeaderControlsVisibility();
+        persist();
+      }
+      return;
+    }
+
+    const watchSlotBtn = target.closest('.js-watch-slot-btn');
+    if (watchSlotBtn) {
+      const id = watchSlotBtn.getAttribute('data-id');
+      if (id) {
+        const slotToUse = state.targetSlot || state.activeSlot || 1;
+        state.slots[String(slotToUse)] = id;
+        state.activeSlot = slotToUse;
+        state.targetSlot = slotToUse;
+        applyActiveSlotUI(slotEls);
+        applyTargetSlotUI(slotButtons);
+        applyFocusTarget(slotEls);
+        renderSlots(slotEls);
+        updateHeaderControlsVisibility();
         persist();
       }
       return;
@@ -344,6 +552,7 @@ export function bindEvents(refs) {
       if (slot >= 1 && slot <= 4) {
         state.slots[String(slot)] = null;
         renderSlots(slotEls);
+        updateHeaderControlsVisibility();
         persist();
       }
     }
@@ -357,6 +566,7 @@ export function bindEvents(refs) {
       applyFocusToggle(focusToggle);
       applyFocusTarget(slotEls);
       renderSlots(slotEls);
+      updateHeaderControlsVisibility();
       persist();
       return;
     }
@@ -370,6 +580,7 @@ export function bindEvents(refs) {
       if (state.focusMode) {
         renderSlots(slotEls);
       }
+      updateHeaderControlsVisibility();
       persist();
     }
   });
@@ -381,7 +592,17 @@ export function bindEvents(refs) {
     setFallbackStreams();
     renderDirectoryList();
     renderSlots(slotEls);
+    updateHeaderControlsVisibility();
     renderCategories();
+
+    const initialRouteKind = getRouteKind(window.location.pathname || '/');
+    if (initialRouteKind === 'multiview') {
+      const url = new URL(window.location.href);
+      const hasCategoryContext = Boolean(url.searchParams.get('categoryId') || url.searchParams.get('categoryName'));
+      if (hasCategoryContext) {
+        return;
+      }
+    }
 
     const [twitchData, trovoData] = await Promise.all([hydrateTwitchStreams(), hydrateTrovoStreams()]);
     const merged = [...(twitchData || []), ...(trovoData || [])];
@@ -390,6 +611,7 @@ export function bindEvents(refs) {
       setStreams(merged, 'live');
       renderDirectoryList();
       renderSlots(slotEls);
+      updateHeaderControlsVisibility();
       return;
     }
 

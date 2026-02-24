@@ -1,6 +1,6 @@
 # Stream Hub
 
-Stream Hub is a lightweight, self-hosted multiview hub for watching up to four live streams (Twitch + Trovo) side by side.
+Stream Hub is a lightweight, self-hosted multiview hub for watching up to four live streams (Twitch based) side by side.
 
 Current UX flow is split into clear stages:
 - `/` -> categories browser

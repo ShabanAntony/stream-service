@@ -186,6 +186,12 @@ export function loadPersisted() {
       state.activeSlot = saved.activeSlot;
     }
 
+    const hasAnySlot = Object.values(state.slots).some(Boolean);
+    if (!hasAnySlot) {
+      state.targetSlot = 1;
+      state.activeSlot = 1;
+    }
+
     if (typeof saved.followedFilter === 'boolean') {
       state.followedFilter = saved.followedFilter;
     }

@@ -1,5 +1,4 @@
 import { hydrateTwitchStreams } from './api/hydrateTwitch.js';
-import { hydrateTrovoStreams } from './api/hydrateTrovo.js';
 import { logoutTwitch } from './api/auth.js';
 import { fetchCategoryStreamsByName } from './api/categoryStreams.js';
 import {
@@ -14,6 +13,7 @@ import {
   setFollowedFilter,
   setMultiviewContext,
   setRoutePath,
+  getStreams,
   setStreams,
   state,
   toggleCategoriesTagFilter,
@@ -29,6 +29,45 @@ import {
 import { renderCategoriesView } from './ui/renderCategoriesView.js';
 import { renderList } from './ui/renderList.js';
 import { renderSlots } from './ui/renderSlots.js';
+
+function getMultiviewBridge() {
+  return window.multiviewBridge || null;
+}
+
+function getSlotEls() {
+  return document.querySelectorAll('.js-slot');
+}
+
+function renderSlotsMaybe(slotEls) {
+  const bridge = getMultiviewBridge();
+  if (bridge) return;
+  renderSlots(slotEls);
+}
+
+function pruneLegacySlotsToKnownStreams(knownStreams) {
+  const knownIds = new Set((Array.isArray(knownStreams) ? knownStreams : []).map((s) => s?.id).filter(Boolean));
+  let changed = false;
+  for (const slot of [1, 2, 3, 4]) {
+    const key = String(slot);
+    const id = state.slots[key];
+    if (id && !knownIds.has(id)) {
+      state.slots[key] = null;
+      changed = true;
+    }
+  }
+
+  const occupied = [1, 2, 3, 4].filter((slot) => Boolean(state.slots[String(slot)]));
+  const fallbackSlot = occupied.length ? occupied[0] : 1;
+  if (!occupied.includes(state.targetSlot)) {
+    state.targetSlot = fallbackSlot;
+    changed = true;
+  }
+  if (!occupied.includes(state.activeSlot)) {
+    state.activeSlot = fallbackSlot;
+    changed = true;
+  }
+  return changed;
+}
 
 function getRouteKind(pathname) {
   const path = pathname || '/';
@@ -75,6 +114,18 @@ export function bindEvents(refs) {
     if (listEl && resultsMetaEl) {
       renderList(listEl, resultsMetaEl);
     }
+
+    const slotsChanged = pruneLegacySlotsToKnownStreams(getStreams());
+    if (slotsChanged) {
+      applyTargetSlotUI(slotButtons);
+      applyActiveSlotUI(getSlotEls());
+      applyFocusTarget(getSlotEls());
+    }
+
+    const bridge = getMultiviewBridge();
+    if (bridge && typeof bridge.setStreams === 'function') {
+      bridge.setStreams(getStreams(), runtime.source === 'live' ? 'live' : runtime.source || 'sample');
+    }
   };
 
   const renderCategories = () => {
@@ -106,27 +157,26 @@ export function bindEvents(refs) {
   const getFilledSlotsCount = () => Object.values(state.slots).filter(Boolean).length;
   const getHighestOccupiedSlot = () => {
     const occupied = [1, 2, 3, 4].filter((slot) => Boolean(state.slots[String(slot)]));
-    return occupied.length ? Math.max(...occupied) : 0;
+    return occupied.length ? Math.max(...occupied) : 4;
   };
 
   const updateHeaderControlsVisibility = () => {
     const routeKind = getRouteKind(state.routePath);
     const isMultiviewRoute = routeKind === 'multiview';
-    const filledCount = getFilledSlotsCount();
     const visibleSlotButtonsCount = getHighestOccupiedSlot();
 
     if (focusToggle) {
-      focusToggle.hidden = !isMultiviewRoute || filledCount < 2;
+      focusToggle.hidden = !isMultiviewRoute || getFilledSlotsCount() < 2;
     }
 
     const slotToggleEl = slotButtons[0]?.closest('.slot-toggle');
     if (slotToggleEl) {
-      slotToggleEl.hidden = !isMultiviewRoute || visibleSlotButtonsCount < 2;
+      slotToggleEl.hidden = !isMultiviewRoute;
     }
 
     slotButtons.forEach((btn) => {
       const slot = Number(btn.dataset.slot) || 0;
-      btn.hidden = !isMultiviewRoute || slot > visibleSlotButtonsCount || visibleSlotButtonsCount < 2;
+      btn.hidden = !isMultiviewRoute || slot > visibleSlotButtonsCount;
     });
   };
 
@@ -335,13 +385,16 @@ export function bindEvents(refs) {
       if (!state.focusMode) {
         state.hoverSlot = null;
       }
-      applyFocusMode(page);
-      applyFocusToggle(focusToggle);
-      applyFocusTarget(slotEls);
-      renderSlots(slotEls);
-      persist();
-    });
-  }
+    applyFocusMode(page);
+    applyFocusToggle(focusToggle);
+    const slots = getSlotEls();
+    applyFocusTarget(slots);
+    const bridge = getMultiviewBridge();
+    if (bridge?.toggleFocusMode) bridge.toggleFocusMode();
+    renderSlotsMaybe(slots);
+    persist();
+  });
+}
 
   sortButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -385,17 +438,21 @@ export function bindEvents(refs) {
       state.targetSlot = Number(btn.dataset.slot) || 1;
       applyTargetSlotUI(slotButtons);
 
-      state.activeSlot = state.targetSlot;
-      applyActiveSlotUI(slotEls);
-      applyFocusTarget(slotEls);
-      if (state.focusMode) {
-        renderSlots(slotEls);
-      }
-      persist();
+    state.activeSlot = state.targetSlot;
+    const slots = getSlotEls();
+    applyActiveSlotUI(slots);
+    applyFocusTarget(slots);
+    if (state.focusMode) {
+      renderSlotsMaybe(slots);
+    }
+    const bridge = getMultiviewBridge();
+    if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
+    if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
+    persist();
     });
   });
 
-  slotEls.forEach((slotEl) => {
+  getSlotEls().forEach((slotEl) => {
     slotEl.addEventListener('click', (e) => {
       const target = e.target;
       if (target instanceof Element && target.closest('.js-slot-clear')) {
@@ -405,11 +462,12 @@ export function bindEvents(refs) {
       const slot = Number(slotEl.dataset.slot) || 1;
       state.activeSlot = slot;
       state.targetSlot = slot;
-      applyActiveSlotUI(slotEls);
+      const slots = getSlotEls();
+      applyActiveSlotUI(slots);
       applyTargetSlotUI(slotButtons);
-      applyFocusTarget(slotEls);
+      applyFocusTarget(slots);
       if (state.focusMode) {
-        renderSlots(slotEls);
+        renderSlotsMaybe(slots);
       }
       persist();
     });
@@ -417,13 +475,13 @@ export function bindEvents(refs) {
     slotEl.addEventListener('mouseenter', () => {
       if (!state.focusMode) return;
       state.hoverSlot = Number(slotEl.dataset.slot) || null;
-      applyFocusTarget(slotEls);
+      applyFocusTarget(getSlotEls());
     });
 
     slotEl.addEventListener('mouseleave', () => {
       if (!state.focusMode) return;
       state.hoverSlot = null;
-      applyFocusTarget(slotEls);
+      applyFocusTarget(getSlotEls());
     });
   });
 
@@ -514,13 +572,19 @@ export function bindEvents(refs) {
       const id = addBtn.getAttribute('data-id');
       if (id) {
         const slotToUse = getNextAddSlot();
-        state.slots[String(slotToUse)] = id;
         state.targetSlot = slotToUse;
         state.activeSlot = slotToUse;
-        applyActiveSlotUI(slotEls);
+        state.slots[String(slotToUse)] = id;
+        const bridge = getMultiviewBridge();
+        if (bridge?.assignStreamToSlot) {
+          bridge.assignStreamToSlot(slotToUse, id);
+        } else if (bridge?.assignStream) {
+          bridge.assignStream(id);
+        }
+        const slots = getSlotEls();
+        applyActiveSlotUI(slots);
         applyTargetSlotUI(slotButtons);
-        applyFocusTarget(slotEls);
-        renderSlots(slotEls);
+        applyFocusTarget(slots);
         updateHeaderControlsVisibility();
         persist();
       }
@@ -532,13 +596,19 @@ export function bindEvents(refs) {
       const id = watchSlotBtn.getAttribute('data-id');
       if (id) {
         const slotToUse = state.targetSlot || state.activeSlot || 1;
-        state.slots[String(slotToUse)] = id;
         state.activeSlot = slotToUse;
         state.targetSlot = slotToUse;
-        applyActiveSlotUI(slotEls);
+        state.slots[String(slotToUse)] = id;
+        const bridge = getMultiviewBridge();
+        if (bridge?.assignStreamToSlot) {
+          bridge.assignStreamToSlot(slotToUse, id);
+        } else if (bridge?.assignStream) {
+          bridge.assignStream(id);
+        }
+        const slots = getSlotEls();
+        applyActiveSlotUI(slots);
         applyTargetSlotUI(slotButtons);
-        applyFocusTarget(slotEls);
-        renderSlots(slotEls);
+        applyFocusTarget(slots);
         updateHeaderControlsVisibility();
         persist();
       }
@@ -551,7 +621,11 @@ export function bindEvents(refs) {
       const slot = slotFromData || Number(clearBtn.closest('.js-slot')?.getAttribute('data-slot'));
       if (slot >= 1 && slot <= 4) {
         state.slots[String(slot)] = null;
-        renderSlots(slotEls);
+        const bridge = getMultiviewBridge();
+        if (bridge?.clearSlot) {
+          bridge.clearSlot(slot);
+        }
+        renderSlotsMaybe(getSlotEls());
         updateHeaderControlsVisibility();
         persist();
       }
@@ -564,8 +638,8 @@ export function bindEvents(refs) {
       state.hoverSlot = null;
       applyFocusMode(page);
       applyFocusToggle(focusToggle);
-      applyFocusTarget(slotEls);
-      renderSlots(slotEls);
+      applyFocusTarget(getSlotEls());
+      renderSlots(getSlotEls());
       updateHeaderControlsVisibility();
       persist();
       return;
@@ -575,11 +649,15 @@ export function bindEvents(refs) {
       state.targetSlot = Number(e.key);
       state.activeSlot = state.targetSlot;
       applyTargetSlotUI(slotButtons);
-      applyActiveSlotUI(slotEls);
-      applyFocusTarget(slotEls);
+      const slots = getSlotEls();
+      applyActiveSlotUI(slots);
+      applyFocusTarget(slots);
       if (state.focusMode) {
-        renderSlots(slotEls);
+        renderSlotsMaybe(slots);
       }
+      const bridge = getMultiviewBridge();
+      if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
+      if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
       updateHeaderControlsVisibility();
       persist();
     }
@@ -591,7 +669,9 @@ export function bindEvents(refs) {
   (async () => {
     setFallbackStreams();
     renderDirectoryList();
-    renderSlots(slotEls);
+    const bridge = getMultiviewBridge();
+    if (bridge?.setStreams) bridge.setStreams(getStreams(), runtime.source || 'fallback');
+    renderSlotsMaybe(slotEls);
     updateHeaderControlsVisibility();
     renderCategories();
 
@@ -604,13 +684,14 @@ export function bindEvents(refs) {
       }
     }
 
-    const [twitchData, trovoData] = await Promise.all([hydrateTwitchStreams(), hydrateTrovoStreams()]);
-    const merged = [...(twitchData || []), ...(trovoData || [])];
+    const merged = (await hydrateTwitchStreams()) || [];
 
     if (merged.length) {
       setStreams(merged, 'live');
       renderDirectoryList();
-      renderSlots(slotEls);
+      const bridge = getMultiviewBridge();
+      if (bridge?.setStreams) bridge.setStreams(getStreams(), runtime.source || 'live');
+      renderSlotsMaybe(slotEls);
       updateHeaderControlsVisibility();
       return;
     }

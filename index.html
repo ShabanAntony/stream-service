@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stream Hub</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/dist/assets/styles.css" />
     <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/dist/assets/multiview.js"></script>
   </head>
   <body class="page js-page">
     <header class="header">
@@ -135,45 +137,7 @@
           </div>
 
           <section class="multiview js-multiview" aria-label="Player slots">
-            <div class="slot js-slot" data-slot="1">
-              <div class="slot__top">
-                <div class="slot__title">Slot 1</div>
-                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 1">Clear</button>
-              </div>
-              <div class="slot__body js-slot-body">
-                <div class="slot__empty">Empty</div>
-              </div>
-            </div>
-
-            <div class="slot js-slot" data-slot="2">
-              <div class="slot__top">
-                <div class="slot__title">Slot 2</div>
-                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 2">Clear</button>
-              </div>
-              <div class="slot__body js-slot-body">
-                <div class="slot__empty">Empty</div>
-              </div>
-            </div>
-
-            <div class="slot js-slot" data-slot="3">
-              <div class="slot__top">
-                <div class="slot__title">Slot 3</div>
-                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 3">Clear</button>
-              </div>
-              <div class="slot__body js-slot-body">
-                <div class="slot__empty">Empty</div>
-              </div>
-            </div>
-
-            <div class="slot js-slot" data-slot="4">
-              <div class="slot__top">
-                <div class="slot__title">Slot 4</div>
-                <button class="slot__action js-slot-clear" type="button" aria-label="Clear slot 4">Clear</button>
-              </div>
-              <div class="slot__body js-slot-body">
-                <div class="slot__empty">Empty</div>
-              </div>
-            </div>
+            <div id="react-multiview-root"></div>
           </section>
         </main>
       </section>

@@ -1,6 +1,6 @@
 # Stream Hub
 
-Stream Hub is a lightweight, self-hosted multiview hub for watching up to four live streams (Twitch based) side by side.
+Stream Hub is a lightweight, self-hosted multiview hub for watching up to four live streams (currently Twitch-first) side by side.
 
 Current UX flow is split into clear stages:
 - `/` -> categories browser
@@ -11,6 +11,7 @@ Current UX flow is split into clear stages:
 
 - **Separated browsing flow**: categories, category channels, and multiview are separate pages with distinct responsibilities.
 - **Multiview (up to 4 slots)**: 2x2 player grid with slot targeting, focus mode, and dock controls.
+- **Hybrid multiview rendering**: multiview player slots are now rendered by a React + TypeScript island, while directory/categories remain legacy vanilla JS.
 - **Slot targeting sync**: header buttons `1-4`, keyboard digits, and clicked slots stay synchronized.
 - **Focus mode**: active (and hovered) slot stays visible while other slots blur/desaturate.
 - **Category taxonomy filters**: categories use curated local tags (`src/data/category-taxonomy.json`) with AND filtering.
@@ -28,12 +29,13 @@ Current UX flow is split into clear stages:
    - `TWITCH_CLIENT_SECRET`
    - `TWITCH_REDIRECT_URI`
    - `TWITCH_AUTH_SCOPES`
-   - `TROVO_CLIENT_ID` (optional for now)
    - `PORT` (optional)
-4. Start server:
+4. Build React multiview assets:
+   - `npm run build:client`
+5. Start server:
    - `npm run dev` (dev)
    - `npm start` (single run)
-5. Open:
+6. Open:
    - `http://localhost:3000/` (Categories)
    - `http://localhost:3000/multiview` (Multiview)
 
@@ -49,9 +51,11 @@ Current UX flow is split into clear stages:
 
 ## Architecture
 
-### Frontend (`src/`)
+### Frontend (`src/`, `src-react/`)
 
-- Modular vanilla JS
+- Hybrid frontend:
+  - `src/` legacy vanilla JS (routing, directory, categories, auth)
+  - `src-react/` React + TypeScript multiview slot island
 - Central `store` tracks:
   - multiview slots and focus state
   - category filters/sort
@@ -62,6 +66,9 @@ Current UX flow is split into clear stages:
   - `src/ui/renderList.js`
   - `src/ui/renderSlots.js`
   - `src/ui/applyLayout.js`
+- React multiview island:
+  - `src-react/multiview-entry.tsx`
+  - `src-react/features/multiview/*`
 
 ### Backend (`server.js`, `server/lib/*`, `server/routes/*`)
 
@@ -106,6 +113,7 @@ Current UX flow is split into clear stages:
   - `seed`
 - Sidebar loads channels from the same category
 - Seeded channel is placed into slot 1
+- Sidebar/list remains legacy-rendered; player slots are React-rendered and synchronized through a bridge (`window.multiviewBridge`)
 
 ## Current UX Contract (MVP)
 
@@ -118,7 +126,7 @@ Current UX flow is split into clear stages:
 - seeds slot 1
 
 `Add` in multiview:
-- adds stream to current target slot (existing behavior)
+- adds stream to next free slot (or target slot flow depending on UI action), synchronized with React slot island
 
 ## Troubleshooting
 
@@ -131,15 +139,16 @@ Current UX flow is split into clear stages:
 - If UI shows fallback results:
   - confirm backend is running
   - verify `.env` credentials
+- If multiview page looks outdated after changes:
+  - run `npm run build:client` again (React slot island is served from `dist/assets/*`)
 
 ## Documentation
 
 - Product/UX spec for this flow: `docs/multiview-category-flow-spec.md`
 
 ## Next Steps
-
-1. Add `Back to category` action in multiview
-2. Add category context header in multiview sidebar
+1. Remove remaining legacy `renderSlots()` path and duplicate slot event handling in `src/events.js`
+2. Move multiview header controls (`focus`, slot buttons) to React to avoid dual state ownership
 3. Add direct Twitch channel lookup endpoint (when login is not in current category list)
-4. Add user playlists/presets for multiview (save reusable sets of streamers + layout)
-5. Refactor to TypeScript + React after MVP flow is stable
+4. Add user presets/playlists for multiview (saved streamer sets + layout)
+5. Expand React migration beyond multiview slots (sidebar/directory/categories)

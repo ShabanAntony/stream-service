@@ -47,17 +47,20 @@ Verification:
 
 ### Stage 3: Bridge real app data to React multiview
 
-Status: in progress
+Status: done
 
 Scope:
 - Reuse current stream data shape from existing frontend
 - Replace `renderSlots()` path with React island mount
 - Keep legacy directory rendering for now
 
-Completed in this pass:
-- React sandbox now hydrates from current `/api/twitch` and `/api/trovo` endpoints
-- React sandbox reuses current fallback data/config (`src/data/fallbackStreams.js`, `src/config.js`)
-- URL `?seed=` bootstrapping is supported in the React sandbox
+Completed:
+- React multiview slot island is mounted on `/multiview` (`#react-multiview-root`)
+- Legacy list/directory actions (`Add`, `Watch`, slot hotkeys) sync into React slots via `window.multiviewBridge`
+- Legacy slot layout contract is preserved (`.multiview`, `.slot`, `data-layout=1..4`)
+- Legacy slot state is sanitized against current stream data to avoid invalid persisted slot IDs
+- React bridge uses Twitch-only live hydration in current integration path
+- React sandbox still exists for isolated testing (`/index.react.html`)
 
 Verification:
 - Add/remove stream in multiview updates only affected slot
@@ -70,7 +73,7 @@ Status: pending
 
 Scope:
 - Migrate multiview page controls from `events.js` to React
-- Remove duplicate slot logic from legacy renderer
+- Remove duplicate slot logic from legacy renderer / event bindings
 - Add test coverage (render scope + interaction flows)
 
 Verification:
@@ -90,3 +93,4 @@ Verification:
 
 - The React sandbox is intentionally isolated first. This de-risks performance behavior before wiring it into the legacy event system.
 - Audio mute/unmute orchestration is deferred until player lifecycle is stable.
+- Current production path is hybrid: legacy directory + React slot grid.

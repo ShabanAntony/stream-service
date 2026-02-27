@@ -14,14 +14,16 @@ export const SlotCard = memo(function SlotCard({ slotId, hidden }: SlotCardProps
   const activeSlot = useMultiviewStore((state) => state.activeSlot);
   const targetSlot = useMultiviewStore((state) => state.targetSlot);
   const focusMode = useMultiviewStore((state) => state.focusMode);
+  const hoverSlot = useMultiviewStore((state) => state.hoverSlot);
   const setActiveSlot = useMultiviewStore((state) => state.setActiveSlot);
   const setTargetSlot = useMultiviewStore((state) => state.setTargetSlot);
+  const setHoverSlot = useMultiviewStore((state) => state.setHoverSlot);
   const clearSlot = useMultiviewStore((state) => state.clearSlot);
 
   const stream = getStreamById(streams, streamId);
   const isActive = activeSlot === slotId;
   const isTarget = targetSlot === slotId;
-  const isFocusTarget = focusMode && isActive;
+  const isFocusTarget = focusMode && (isActive || hoverSlot === slotId);
 
   return (
     <div
@@ -31,6 +33,14 @@ export const SlotCard = memo(function SlotCard({ slotId, hidden }: SlotCardProps
       onClick={() => {
         setActiveSlot(slotId);
         setTargetSlot(slotId);
+      }}
+      onMouseEnter={() => {
+        if (!focusMode) return;
+        setHoverSlot(slotId);
+      }}
+      onMouseLeave={() => {
+        if (!focusMode) return;
+        setHoverSlot(null);
       }}
     >
       <div className="slot__top">

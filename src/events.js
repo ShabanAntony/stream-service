@@ -19,29 +19,16 @@ import {
   toggleCategoriesTagFilter,
 } from './store.js';
 import {
-  applyActiveSlotUI,
   applyDock,
   applyFocusMode,
-  applyFocusTarget,
   applyFocusToggle,
   applyTargetSlotUI,
 } from './ui/applyLayout.js';
 import { renderCategoriesView } from './ui/renderCategoriesView.js';
 import { renderList } from './ui/renderList.js';
-import { renderSlots } from './ui/renderSlots.js';
 
 function getMultiviewBridge() {
   return window.multiviewBridge || null;
-}
-
-function getSlotEls() {
-  return document.querySelectorAll('.js-slot');
-}
-
-function renderSlotsMaybe(slotEls) {
-  const bridge = getMultiviewBridge();
-  if (bridge) return;
-  renderSlots(slotEls);
 }
 
 function pruneLegacySlotsToKnownStreams(knownStreams) {
@@ -96,7 +83,6 @@ export function bindEvents(refs) {
     languageSelect,
     platformSelect,
     slotButtons,
-    slotEls,
     authLoginBtn,
     authLogoutBtn,
     followedToggleBtn,
@@ -118,8 +104,9 @@ export function bindEvents(refs) {
     const slotsChanged = pruneLegacySlotsToKnownStreams(getStreams());
     if (slotsChanged) {
       applyTargetSlotUI(slotButtons);
-      applyActiveSlotUI(getSlotEls());
-      applyFocusTarget(getSlotEls());
+      const bridge = getMultiviewBridge();
+      if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
+      if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
     }
 
     const bridge = getMultiviewBridge();
@@ -157,13 +144,30 @@ export function bindEvents(refs) {
   const getFilledSlotsCount = () => Object.values(state.slots).filter(Boolean).length;
   const getHighestOccupiedSlot = () => {
     const occupied = [1, 2, 3, 4].filter((slot) => Boolean(state.slots[String(slot)]));
-    return occupied.length ? Math.max(...occupied) : 4;
+    return occupied.length ? Math.max(...occupied) : 0;
+  };
+
+  const enforceFocusModeEligibility = () => {
+    const filled = getFilledSlotsCount();
+    if (filled >= 2) return;
+    if (!state.focusMode) return;
+    state.focusMode = false;
+    state.hoverSlot = null;
+    applyFocusMode(page);
+    applyFocusToggle(focusToggle);
+    const bridge = getMultiviewBridge();
+    if (bridge?.setFocusMode) {
+      bridge.setFocusMode(false);
+    } else if (bridge?.toggleFocusMode) {
+      bridge.toggleFocusMode();
+    }
   };
 
   const updateHeaderControlsVisibility = () => {
     const routeKind = getRouteKind(state.routePath);
     const isMultiviewRoute = routeKind === 'multiview';
     const visibleSlotButtonsCount = getHighestOccupiedSlot();
+    enforceFocusModeEligibility();
 
     if (focusToggle) {
       focusToggle.hidden = !isMultiviewRoute || getFilledSlotsCount() < 2;
@@ -171,12 +175,12 @@ export function bindEvents(refs) {
 
     const slotToggleEl = slotButtons[0]?.closest('.slot-toggle');
     if (slotToggleEl) {
-      slotToggleEl.hidden = !isMultiviewRoute;
+      slotToggleEl.hidden = !isMultiviewRoute || visibleSlotButtonsCount < 2;
     }
 
     slotButtons.forEach((btn) => {
       const slot = Number(btn.dataset.slot) || 0;
-      btn.hidden = !isMultiviewRoute || slot > visibleSlotButtonsCount;
+      btn.hidden = !isMultiviewRoute || visibleSlotButtonsCount < 2 || slot > visibleSlotButtonsCount;
     });
   };
 
@@ -246,9 +250,14 @@ export function bindEvents(refs) {
     state.activeSlot = 1;
     state.targetSlot = 1;
     applyTargetSlotUI(slotButtons);
-    applyActiveSlotUI(slotEls);
-    applyFocusTarget(slotEls);
-    renderSlots(slotEls);
+    const bridge = getMultiviewBridge();
+    if (bridge?.assignStreamToSlot) {
+      bridge.assignStreamToSlot(1, seedStream.id);
+    } else if (bridge?.assignStream) {
+      bridge.assignStream(seedStream.id);
+    }
+    if (bridge?.setTargetSlot) bridge.setTargetSlot(1);
+    if (bridge?.setActiveSlot) bridge.setActiveSlot(1);
     persist();
   };
 
@@ -264,7 +273,6 @@ export function bindEvents(refs) {
     if (Array.isArray(streams) && streams.length) {
       setStreams(streams, 'live');
       renderDirectoryList();
-      renderSlots(slotEls);
       seedMultiviewSlotFromQuery(streams);
     }
   };
@@ -371,6 +379,30 @@ export function bindEvents(refs) {
     applyRouteUI();
   });
 
+  window.addEventListener('multiview:state-change', (event) => {
+    const detail = event && typeof event === 'object' ? event.detail : null;
+    if (!detail || typeof detail !== 'object') return;
+    const slots = detail.slots && typeof detail.slots === 'object' ? detail.slots : null;
+    if (slots) {
+      state.slots = {
+        1: slots['1'] || null,
+        2: slots['2'] || null,
+        3: slots['3'] || null,
+        4: slots['4'] || null,
+      };
+    }
+    const nextTarget = Number(detail.targetSlot);
+    const nextActive = Number(detail.activeSlot);
+    if (nextTarget >= 1 && nextTarget <= 4) {
+      state.targetSlot = nextTarget;
+    }
+    if (nextActive >= 1 && nextActive <= 4) {
+      state.activeSlot = nextActive;
+    }
+    applyTargetSlotUI(slotButtons);
+    updateHeaderControlsVisibility();
+  });
+
   dockButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       state.dock = btn.dataset.dock === 'right' ? 'right' : 'left';
@@ -385,16 +417,13 @@ export function bindEvents(refs) {
       if (!state.focusMode) {
         state.hoverSlot = null;
       }
-    applyFocusMode(page);
-    applyFocusToggle(focusToggle);
-    const slots = getSlotEls();
-    applyFocusTarget(slots);
-    const bridge = getMultiviewBridge();
-    if (bridge?.toggleFocusMode) bridge.toggleFocusMode();
-    renderSlotsMaybe(slots);
-    persist();
-  });
-}
+      applyFocusMode(page);
+      applyFocusToggle(focusToggle);
+      const bridge = getMultiviewBridge();
+      if (bridge?.toggleFocusMode) bridge.toggleFocusMode();
+      persist();
+    });
+  }
 
   sortButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -438,50 +467,11 @@ export function bindEvents(refs) {
       state.targetSlot = Number(btn.dataset.slot) || 1;
       applyTargetSlotUI(slotButtons);
 
-    state.activeSlot = state.targetSlot;
-    const slots = getSlotEls();
-    applyActiveSlotUI(slots);
-    applyFocusTarget(slots);
-    if (state.focusMode) {
-      renderSlotsMaybe(slots);
-    }
-    const bridge = getMultiviewBridge();
-    if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
-    if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
-    persist();
-    });
-  });
-
-  getSlotEls().forEach((slotEl) => {
-    slotEl.addEventListener('click', (e) => {
-      const target = e.target;
-      if (target instanceof Element && target.closest('.js-slot-clear')) {
-        return;
-      }
-
-      const slot = Number(slotEl.dataset.slot) || 1;
-      state.activeSlot = slot;
-      state.targetSlot = slot;
-      const slots = getSlotEls();
-      applyActiveSlotUI(slots);
-      applyTargetSlotUI(slotButtons);
-      applyFocusTarget(slots);
-      if (state.focusMode) {
-        renderSlotsMaybe(slots);
-      }
+      state.activeSlot = state.targetSlot;
+      const bridge = getMultiviewBridge();
+      if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
+      if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
       persist();
-    });
-
-    slotEl.addEventListener('mouseenter', () => {
-      if (!state.focusMode) return;
-      state.hoverSlot = Number(slotEl.dataset.slot) || null;
-      applyFocusTarget(getSlotEls());
-    });
-
-    slotEl.addEventListener('mouseleave', () => {
-      if (!state.focusMode) return;
-      state.hoverSlot = null;
-      applyFocusTarget(getSlotEls());
     });
   });
 
@@ -581,10 +571,7 @@ export function bindEvents(refs) {
         } else if (bridge?.assignStream) {
           bridge.assignStream(id);
         }
-        const slots = getSlotEls();
-        applyActiveSlotUI(slots);
         applyTargetSlotUI(slotButtons);
-        applyFocusTarget(slots);
         updateHeaderControlsVisibility();
         persist();
       }
@@ -605,10 +592,7 @@ export function bindEvents(refs) {
         } else if (bridge?.assignStream) {
           bridge.assignStream(id);
         }
-        const slots = getSlotEls();
-        applyActiveSlotUI(slots);
         applyTargetSlotUI(slotButtons);
-        applyFocusTarget(slots);
         updateHeaderControlsVisibility();
         persist();
       }
@@ -625,7 +609,6 @@ export function bindEvents(refs) {
         if (bridge?.clearSlot) {
           bridge.clearSlot(slot);
         }
-        renderSlotsMaybe(getSlotEls());
         updateHeaderControlsVisibility();
         persist();
       }
@@ -638,8 +621,8 @@ export function bindEvents(refs) {
       state.hoverSlot = null;
       applyFocusMode(page);
       applyFocusToggle(focusToggle);
-      applyFocusTarget(getSlotEls());
-      renderSlots(getSlotEls());
+      const bridge = getMultiviewBridge();
+      if (bridge?.toggleFocusMode) bridge.toggleFocusMode();
       updateHeaderControlsVisibility();
       persist();
       return;
@@ -649,12 +632,6 @@ export function bindEvents(refs) {
       state.targetSlot = Number(e.key);
       state.activeSlot = state.targetSlot;
       applyTargetSlotUI(slotButtons);
-      const slots = getSlotEls();
-      applyActiveSlotUI(slots);
-      applyFocusTarget(slots);
-      if (state.focusMode) {
-        renderSlotsMaybe(slots);
-      }
       const bridge = getMultiviewBridge();
       if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
       if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
@@ -671,7 +648,6 @@ export function bindEvents(refs) {
     renderDirectoryList();
     const bridge = getMultiviewBridge();
     if (bridge?.setStreams) bridge.setStreams(getStreams(), runtime.source || 'fallback');
-    renderSlotsMaybe(slotEls);
     updateHeaderControlsVisibility();
     renderCategories();
 
@@ -691,7 +667,6 @@ export function bindEvents(refs) {
       renderDirectoryList();
       const bridge = getMultiviewBridge();
       if (bridge?.setStreams) bridge.setStreams(getStreams(), runtime.source || 'live');
-      renderSlotsMaybe(slotEls);
       updateHeaderControlsVisibility();
       return;
     }

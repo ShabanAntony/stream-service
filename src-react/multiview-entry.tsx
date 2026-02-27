@@ -9,6 +9,9 @@ function MultiviewApp() {
   const hydrateLiveStreams = useMultiviewStore((state) => state.hydrateLiveStreams);
   const seedFromUrl = useMultiviewStore((state) => state.seedFromUrl);
   const streams = useMultiviewStore((state) => state.streams);
+  const slots = useMultiviewStore((state) => state.slots);
+  const targetSlot = useMultiviewStore((state) => state.targetSlot);
+  const activeSlot = useMultiviewStore((state) => state.activeSlot);
 
   useEffect(() => {
     seedFromUrl(window.location.search);
@@ -16,6 +19,14 @@ function MultiviewApp() {
       void hydrateLiveStreams();
     }
   }, [hydrateLiveStreams, seedFromUrl, streams.length]);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('multiview:state-change', {
+        detail: { slots, targetSlot, activeSlot },
+      })
+    );
+  }, [slots, targetSlot, activeSlot]);
 
   return (
     <div className="multiview-embedded">
@@ -42,6 +53,7 @@ if (rootEl) {
     clearSlot: (slot: number) => useMultiviewStore.getState().clearSlot(slot as any),
     setTargetSlot: (slot: number) => useMultiviewStore.getState().setTargetSlot(slot as any),
     setActiveSlot: (slot: number) => useMultiviewStore.getState().setActiveSlot(slot as any),
+    setFocusMode: (next: boolean) => useMultiviewStore.getState().setFocusMode(next),
     toggleFocusMode: () => useMultiviewStore.getState().toggleFocusMode(),
   };
 

@@ -14,12 +14,15 @@ interface MultiviewState {
   activeSlot: SlotId;
   targetSlot: SlotId;
   focusMode: boolean;
+  hoverSlot: SlotId | null;
   setStreams: (streams: StreamItem[], source: MultiviewState['source']) => void;
   hydrateLiveStreams: () => Promise<void>;
   useFallbackStreams: () => void;
   seedFromUrl: (search: string) => void;
   setTargetSlot: (slot: SlotId) => void;
   setActiveSlot: (slot: SlotId) => void;
+  setHoverSlot: (slot: SlotId | null) => void;
+  setFocusMode: (next: boolean) => void;
   toggleFocusMode: () => void;
   assignStreamToTarget: (streamId: string) => void;
   assignStreamToSlot: (slot: SlotId, streamId: string) => void;
@@ -49,6 +52,7 @@ export const useMultiviewStore = create<MultiviewState>((set, get) => ({
   activeSlot: 1,
   targetSlot: 1,
   focusMode: false,
+  hoverSlot: null,
   setStreams: (streams, source) => set({ streams, source, error: '' }),
   hydrateLiveStreams: async () => {
     set({ loading: true, error: '' });
@@ -101,6 +105,8 @@ export const useMultiviewStore = create<MultiviewState>((set, get) => ({
   },
   setTargetSlot: (slot) => set({ targetSlot: slot }),
   setActiveSlot: (slot) => set({ activeSlot: slot, targetSlot: slot }),
+  setHoverSlot: (slot) => set({ hoverSlot: slot }),
+  setFocusMode: (next) => set({ focusMode: Boolean(next) }),
   toggleFocusMode: () => set((state) => ({ focusMode: !state.focusMode })),
   assignStreamToTarget: (streamId) =>
     set((state) => {

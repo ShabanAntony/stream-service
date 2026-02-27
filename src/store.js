@@ -109,7 +109,7 @@ export function setMultiviewContext(context) {
   state.multiviewContext = {
     categoryId: next.categoryId ? String(next.categoryId) : null,
     categoryName: next.categoryName ? String(next.categoryName) : '',
-    platform: next.platform === 'trovo' ? 'trovo' : 'twitch',
+    platform: 'twitch',
   };
 }
 

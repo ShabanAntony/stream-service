@@ -62,7 +62,13 @@ function getFilteredCategoryStreams(streams) {
         stream.category?.toLowerCase().includes(q);
       if (!qMatch) return false;
     }
-    if (state.language && stream.language !== state.language) return false;
+    if (state.language) {
+      const selectedLanguage = String(state.language).toLowerCase();
+      const streamLanguage = String(stream.language || '').toLowerCase();
+      if (!streamLanguage || (streamLanguage !== selectedLanguage && !streamLanguage.startsWith(`${selectedLanguage}-`))) {
+        return false;
+      }
+    }
     if (state.platform && stream.platform !== state.platform) return false;
     if (state.age && getAgeTier(stream.createdAt) !== state.age) return false;
     if (followedSet && !followedSet.has(stream.id)) return false;

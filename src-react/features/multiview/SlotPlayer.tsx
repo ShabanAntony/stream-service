@@ -15,14 +15,6 @@ function buildEmbedUrl(stream: StreamItem) {
     return url.toString();
   }
 
-  if (stream.platform === 'trovo') {
-    const url = new URL('https://player.trovo.live/embed/player');
-    url.searchParams.set('streamername', stream.channel);
-    url.searchParams.set('autoplay', '1');
-    url.searchParams.set('muted', '1');
-    return url.toString();
-  }
-
   return stream.url;
 }
 

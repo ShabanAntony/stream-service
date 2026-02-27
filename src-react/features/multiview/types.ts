@@ -1,4 +1,4 @@
-export type Platform = 'twitch' | 'trovo';
+export type Platform = 'twitch';
 
 export type SlotId = 1 | 2 | 3 | 4;
 

@@ -10,7 +10,7 @@ interface ApiDataResponse {
 }
 
 function isPlatform(value: unknown): value is StreamItem['platform'] {
-  return value === 'twitch' || value === 'trovo';
+  return value === 'twitch';
 }
 
 function normalizeStream(raw: RawStream): StreamItem | null {

@@ -15,8 +15,21 @@ function matchesQuery(stream) {
 }
 
 function matchesFilters(stream) {
-  if (state.language && stream.language !== state.language) return false;
-  if (state.platform && stream.platform !== state.platform) return false;
+  const languageSelect = document.querySelector('.js-language-select');
+  const selectedLanguage = String(
+    (languageSelect instanceof HTMLSelectElement ? languageSelect.value : state.language) || ''
+  )
+    .trim()
+    .toLowerCase();
+
+  if (selectedLanguage) {
+    const streamLanguage = String(stream.language || '').toLowerCase();
+    if (!streamLanguage || (streamLanguage !== selectedLanguage && !streamLanguage.startsWith(`${selectedLanguage}-`))) {
+      return false;
+    }
+  }
+  // Platform filter is disabled for multiview directory until unified cross-platform support returns.
+  // if (state.platform && stream.platform !== state.platform) return false;
   if (state.age) return getAgeTier(stream.createdAt) === state.age;
   return true;
 }
@@ -38,9 +51,7 @@ function sortStreams(list) {
   return sorted;
 }
 
-export function renderList(listEl, resultsMetaEl) {
-  if (!listEl || !resultsMetaEl) return;
-
+export function buildDirectoryListModel() {
   const followedSet = state.followedFilter
     ? new Set(state.followedChannels.map((channel) => channel.id))
     : null;
@@ -60,13 +71,12 @@ export function renderList(listEl, resultsMetaEl) {
         ? ' · fallback (API error)'
         : ' · fallback';
 
-  resultsMetaEl.textContent = `${finalList.length} results${sourceLabel}${protocolHint}`;
-
-  listEl.innerHTML = finalList
+  const metaText = `${finalList.length} results${sourceLabel}${protocolHint}`;
+  const html = finalList
     .map((s) => {
       const isLive = s.isLive !== false;
       const tierLabel = ageTierLabel(getAgeTier(s.createdAt));
-      const platformLabel = s.platform === 'twitch' ? 'Twitch' : s.platform === 'trovo' ? 'Trovo' : 'Other';
+      const platformLabel = s.platform === 'twitch' ? 'Twitch' : 'Other';
       const viewersLabel = isLive ? `${formatNumber(s.viewerCount)} viewers` : 'Currently offline';
       const avatarHtml = s.profileImageUrl
         ? `<img class="stream-card__avatar-img" src="${escapeHtml(s.profileImageUrl)}" alt="${escapeHtml(s.title)}" loading="lazy" />`
@@ -97,4 +107,13 @@ export function renderList(listEl, resultsMetaEl) {
       `;
     })
     .join('');
+
+  return { finalList, metaText, html };
+}
+
+export function renderList(listEl, resultsMetaEl) {
+  if (!listEl || !resultsMetaEl) return;
+  const model = buildDirectoryListModel();
+  resultsMetaEl.textContent = model.metaText;
+  listEl.innerHTML = model.html;
 }

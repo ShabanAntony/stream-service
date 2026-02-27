@@ -1,8 +1,5 @@
-import { trovoStreams } from './trovoStreams.js';
-
 // Used when the API proxy isn't running / configured yet.
 export const fallbackStreams = [
-  ...trovoStreams,
   {
     id: 'twitch-alohadancetv',
     platform: 'twitch',

@@ -7,6 +7,8 @@ type SlotMap = Record<SlotId, string | null>;
 
 interface MultiviewState {
   streams: StreamItem[];
+  directoryList: StreamItem[];
+  directoryMeta: string;
   source: 'sample' | 'fallback' | 'live';
   loading: boolean;
   error: string;
@@ -16,6 +18,7 @@ interface MultiviewState {
   focusMode: boolean;
   hoverSlot: SlotId | null;
   setStreams: (streams: StreamItem[], source: MultiviewState['source']) => void;
+  setDirectoryList: (list: StreamItem[], metaText: string) => void;
   hydrateLiveStreams: () => Promise<void>;
   useFallbackStreams: () => void;
   seedFromUrl: (search: string) => void;
@@ -45,6 +48,8 @@ function getNextEmptySlot(slots: SlotMap): SlotId {
 
 export const useMultiviewStore = create<MultiviewState>((set, get) => ({
   streams: sampleStreams,
+  directoryList: sampleStreams,
+  directoryMeta: `${sampleStreams.length} results · sample`,
   source: 'sample',
   loading: false,
   error: '',
@@ -54,6 +59,11 @@ export const useMultiviewStore = create<MultiviewState>((set, get) => ({
   focusMode: false,
   hoverSlot: null,
   setStreams: (streams, source) => set({ streams, source, error: '' }),
+  setDirectoryList: (list, metaText) =>
+    set({
+      directoryList: Array.isArray(list) ? list : [],
+      directoryMeta: typeof metaText === 'string' ? metaText : '',
+    }),
   hydrateLiveStreams: async () => {
     set({ loading: true, error: '' });
     try {

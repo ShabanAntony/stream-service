@@ -20,12 +20,10 @@ import {
 } from './store.js';
 import {
   applyDock,
-  applyFocusMode,
-  applyFocusToggle,
   applyTargetSlotUI,
 } from './ui/applyLayout.js';
 import { renderCategoriesView } from './ui/renderCategoriesView.js';
-import { renderList } from './ui/renderList.js';
+import { buildDirectoryListModel, renderList } from './ui/renderList.js';
 
 function getMultiviewBridge() {
   return window.multiviewBridge || null;
@@ -97,8 +95,20 @@ export function bindEvents(refs) {
   } = refs;
 
   const renderDirectoryList = () => {
+    const listModel = buildDirectoryListModel();
     if (listEl && resultsMetaEl) {
-      renderList(listEl, resultsMetaEl);
+      const routeKind = getRouteKind(state.routePath);
+      if (routeKind === 'multiview') {
+        const bridge = getMultiviewBridge();
+        if (bridge?.setDirectoryList) {
+          bridge.setDirectoryList(listModel.finalList, listModel.metaText);
+        } else {
+          resultsMetaEl.textContent = listModel.metaText;
+          listEl.innerHTML = listModel.html;
+        }
+      } else {
+        renderList(listEl, resultsMetaEl);
+      }
     }
 
     const slotsChanged = pruneLegacySlotsToKnownStreams(getStreams());
@@ -147,27 +157,10 @@ export function bindEvents(refs) {
     return occupied.length ? Math.max(...occupied) : 0;
   };
 
-  const enforceFocusModeEligibility = () => {
-    const filled = getFilledSlotsCount();
-    if (filled >= 2) return;
-    if (!state.focusMode) return;
-    state.focusMode = false;
-    state.hoverSlot = null;
-    applyFocusMode(page);
-    applyFocusToggle(focusToggle);
-    const bridge = getMultiviewBridge();
-    if (bridge?.setFocusMode) {
-      bridge.setFocusMode(false);
-    } else if (bridge?.toggleFocusMode) {
-      bridge.toggleFocusMode();
-    }
-  };
-
   const updateHeaderControlsVisibility = () => {
     const routeKind = getRouteKind(state.routePath);
     const isMultiviewRoute = routeKind === 'multiview';
     const visibleSlotButtonsCount = getHighestOccupiedSlot();
-    enforceFocusModeEligibility();
 
     if (focusToggle) {
       focusToggle.hidden = !isMultiviewRoute || getFilledSlotsCount() < 2;
@@ -221,7 +214,6 @@ export function bindEvents(refs) {
     const url = new URL(window.location.href);
     const categoryId = url.searchParams.get('categoryId');
     const categoryName = url.searchParams.get('categoryName');
-    const platform = url.searchParams.get('platform');
     if (!categoryId && !categoryName) {
       setMultiviewContext({ categoryId: null, categoryName: '', platform: 'twitch' });
       return;
@@ -229,7 +221,7 @@ export function bindEvents(refs) {
     setMultiviewContext({
       categoryId,
       categoryName,
-      platform: platform === 'trovo' ? 'trovo' : 'twitch',
+      platform: 'twitch',
     });
   };
 
@@ -399,6 +391,9 @@ export function bindEvents(refs) {
     if (nextActive >= 1 && nextActive <= 4) {
       state.activeSlot = nextActive;
     }
+    if (typeof detail.focusMode === 'boolean') {
+      state.focusMode = detail.focusMode;
+    }
     applyTargetSlotUI(slotButtons);
     updateHeaderControlsVisibility();
   });
@@ -410,20 +405,6 @@ export function bindEvents(refs) {
       persist();
     });
   });
-
-  if (focusToggle) {
-    focusToggle.addEventListener('click', () => {
-      state.focusMode = !state.focusMode;
-      if (!state.focusMode) {
-        state.hoverSlot = null;
-      }
-      applyFocusMode(page);
-      applyFocusToggle(focusToggle);
-      const bridge = getMultiviewBridge();
-      if (bridge?.toggleFocusMode) bridge.toggleFocusMode();
-      persist();
-    });
-  }
 
   sortButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -443,7 +424,9 @@ export function bindEvents(refs) {
 
   if (languageSelect) {
     languageSelect.addEventListener('change', () => {
-      state.language = languageSelect.value;
+      state.language = String(languageSelect.value || '')
+        .trim()
+        .toLowerCase();
       rerenderByRoute();
     });
   }
@@ -461,19 +444,6 @@ export function bindEvents(refs) {
       rerenderByRoute();
     });
   }
-
-  slotButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.targetSlot = Number(btn.dataset.slot) || 1;
-      applyTargetSlotUI(slotButtons);
-
-      state.activeSlot = state.targetSlot;
-      const bridge = getMultiviewBridge();
-      if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
-      if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
-      persist();
-    });
-  });
 
   if (categorySortButtons) {
     categorySortButtons.forEach((btn) => {
@@ -612,31 +582,6 @@ export function bindEvents(refs) {
         updateHeaderControlsVisibility();
         persist();
       }
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && state.focusMode) {
-      state.focusMode = false;
-      state.hoverSlot = null;
-      applyFocusMode(page);
-      applyFocusToggle(focusToggle);
-      const bridge = getMultiviewBridge();
-      if (bridge?.toggleFocusMode) bridge.toggleFocusMode();
-      updateHeaderControlsVisibility();
-      persist();
-      return;
-    }
-
-    if (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4') {
-      state.targetSlot = Number(e.key);
-      state.activeSlot = state.targetSlot;
-      applyTargetSlotUI(slotButtons);
-      const bridge = getMultiviewBridge();
-      if (bridge?.setTargetSlot) bridge.setTargetSlot(state.targetSlot);
-      if (bridge?.setActiveSlot) bridge.setActiveSlot(state.activeSlot);
-      updateHeaderControlsVisibility();
-      persist();
     }
   });
 

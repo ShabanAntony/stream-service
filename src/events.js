@@ -1,4 +1,3 @@
-import { hydrateTwitchStreams } from './api/hydrateTwitch.js';
 import { logoutTwitch } from './api/auth.js';
 import { fetchCategoryStreamsByName, fetchCategoryStreamsPageByName } from './api/categoryStreams.js';
 import {
@@ -385,15 +384,25 @@ export function bindEvents(refs) {
     if (!state.multiviewContext.categoryName) {
       return;
     }
-    const page = await fetchCategoryStreamsPageByName(state.multiviewContext.categoryName, 40);
-    const streams = Array.isArray(page?.data) ? page.data : [];
-    multiviewStreamsCursor = page?.pagination?.cursor || '';
-    multiviewStreamsHasMore = Boolean(multiviewStreamsCursor);
-    if (Array.isArray(streams) && streams.length) {
-      setStreams(streams, 'live');
-      setCategoryStreams(streams);
-      renderDirectoryList();
-      seedMultiviewSlotFromQuery(streams);
+    try {
+      const page = await fetchCategoryStreamsPageByName(state.multiviewContext.categoryName, 40);
+      const streams = Array.isArray(page?.data) ? page.data : [];
+      multiviewStreamsCursor = page?.pagination?.cursor || '';
+      multiviewStreamsHasMore = Boolean(multiviewStreamsCursor);
+      if (Array.isArray(streams) && streams.length) {
+        setStreams(streams, 'live');
+        setCategoryStreams(streams);
+        renderDirectoryList();
+        seedMultiviewSlotFromQuery(streams);
+      }
+    } catch (error) {
+      console.error('[multiview] initial contextual load failed', error);
+      // Keep category-detail data if it is already present from previous page.
+      if (Array.isArray(state.categoryStreams) && state.categoryStreams.length) {
+        setStreams(state.categoryStreams, 'live');
+        renderDirectoryList();
+        seedMultiviewSlotFromQuery(state.categoryStreams);
+      }
     }
   };
 
@@ -452,6 +461,7 @@ export function bindEvents(refs) {
     if (push && currentFullPath !== nextPath) {
       window.history.pushState({}, '', nextPath);
     }
+    window.dispatchEvent(new Event('app:navigation'));
     setRoutePath(window.location.pathname || nextPath);
     applyRouteUI();
     persist();
@@ -656,6 +666,12 @@ export function bindEvents(refs) {
       const categoryName = watchBtn.getAttribute('data-category-name') || '';
       if (!streamId) return;
 
+      // Preserve already loaded category streams during SPA navigation to avoid
+      // transient replacement by background/global hydrate payloads.
+      if (Array.isArray(state.categoryStreams) && state.categoryStreams.length) {
+        setStreams(state.categoryStreams, 'live');
+      }
+
       const nextUrl = new URL('/multiview', window.location.origin);
       if (categoryId) nextUrl.searchParams.set('categoryId', categoryId);
       if (categoryName) nextUrl.searchParams.set('categoryName', categoryName);
@@ -737,28 +753,7 @@ export function bindEvents(refs) {
     updateHeaderControlsVisibility();
     renderCategories();
 
-    const initialRouteKind = getRouteKind(window.location.pathname || '/');
-    if (initialRouteKind === 'multiview') {
-      const url = new URL(window.location.href);
-      const hasCategoryContext = Boolean(url.searchParams.get('categoryId') || url.searchParams.get('categoryName'));
-      if (hasCategoryContext) {
-        return;
-      }
-    }
-
-    const merged = (await hydrateTwitchStreams()) || [];
-
-    if (merged.length) {
-      setStreams(merged, 'live');
-      renderDirectoryList();
-      const bridge = getMultiviewBridge();
-      if (bridge?.setStreams) bridge.setStreams(getStreams(), runtime.source || 'live');
-      updateHeaderControlsVisibility();
-      return;
-    }
-
-    runtime.source = 'error';
-    runtime.error = runtime.error || 'No data';
-    renderDirectoryList();
+    // Intentionally no global default hydrate here.
+    // Multiview list is populated either from category context or fallback data.
   })();
 }

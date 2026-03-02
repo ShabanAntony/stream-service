@@ -59,7 +59,12 @@ body {
   padding: 0 16px;
 }
 
-.page.is-categories-route .header__right .dock-toggle,
+#react-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .page.is-categories-route .header__right .focus-btn,
 .page.is-categories-route .header__right .slot-toggle {
   display: none;
@@ -190,7 +195,6 @@ body {
   text-overflow: ellipsis;
 }
 
-.dock-toggle,
 .slot-toggle {
   display: flex;
   align-items: center;
@@ -216,7 +220,6 @@ body {
   background-color: rgba(145, 70, 255, 0.28);
 }
 
-.dock-toggle__btn,
 .slot-toggle__btn {
   height: 28px;
   min-width: 44px;
@@ -229,7 +232,6 @@ body {
   cursor: pointer;
 }
 
-.dock-toggle__btn.is-active,
 .slot-toggle__btn.is-active {
   background-color: rgba(145, 70, 255, 0.28);
 }

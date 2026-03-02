@@ -39,6 +39,16 @@ const initialSlots: SlotMap = {
   4: null,
 };
 
+function compactSlots(slots: SlotMap): SlotMap {
+  const ordered = [slots[1], slots[2], slots[3], slots[4]].filter(Boolean) as string[];
+  return {
+    1: ordered[0] || null,
+    2: ordered[1] || null,
+    3: ordered[2] || null,
+    4: ordered[3] || null,
+  };
+}
+
 function getNextEmptySlot(slots: SlotMap): SlotId {
   for (const slot of [1, 2, 3, 4] as const) {
     if (!slots[slot]) return slot;
@@ -140,12 +150,21 @@ export const useMultiviewStore = create<MultiviewState>((set, get) => ({
       targetSlot: slot,
     })),
   clearSlot: (slot) =>
-    set((state) => ({
-      slots: {
+    set((state) => {
+      const nextSlots = compactSlots({
         ...state.slots,
         [slot]: null,
-      },
-    })),
+      });
+      const occupied = ([1, 2, 3, 4] as const).filter((slotId) => Boolean(nextSlots[slotId]));
+      const fallback = occupied.length ? occupied[0] : 1;
+      const nextActive = occupied.includes(state.activeSlot) ? state.activeSlot : fallback;
+      const nextTarget = occupied.includes(state.targetSlot) ? state.targetSlot : fallback;
+      return {
+        slots: nextSlots,
+        activeSlot: nextActive,
+        targetSlot: nextTarget,
+      };
+    }),
 }));
 
 export function getStreamById(streams: StreamItem[], streamId: string | null) {

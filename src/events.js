@@ -111,6 +111,8 @@ export function bindEvents(refs) {
       }
     }
 
+    syncLanguageOptions();
+
     const slotsChanged = pruneLegacySlotsToKnownStreams(getStreams());
     if (slotsChanged) {
       applyTargetSlotUI(slotButtons);
@@ -125,8 +127,87 @@ export function bindEvents(refs) {
     }
   };
 
+  const syncLanguageOptions = () => {
+    if (!languageSelect) return;
+
+    const routeKind = getRouteKind(state.routePath);
+    const streams =
+      routeKind === 'category-detail' && Array.isArray(state.categoryStreams) && state.categoryStreams.length
+        ? state.categoryStreams
+        : getStreams();
+
+    const languageLabelMap = {
+      en: 'English',
+      ru: 'Russian',
+      es: 'Spanish',
+      de: 'German',
+      fr: 'French',
+      it: 'Italian',
+      pt: 'Portuguese',
+      pl: 'Polish',
+      tr: 'Turkish',
+      uk: 'Ukrainian',
+      ja: 'Japanese',
+      ko: 'Korean',
+      zh: 'Chinese',
+      ar: 'Arabic',
+      hi: 'Hindi',
+      th: 'Thai',
+      vi: 'Vietnamese',
+      id: 'Indonesian',
+      ms: 'Malay',
+    };
+
+    const getLanguageLabel = (value) => {
+      const normalized = String(value || '').trim().toLowerCase();
+      if (!normalized) return '';
+      const base = normalized.split('-')[0];
+      const fallback = languageLabelMap[base] || base.toUpperCase();
+      if (typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function') {
+        try {
+          const display = new Intl.DisplayNames(['en'], { type: 'language' });
+          const resolved = display.of(base);
+          return resolved || fallback;
+        } catch {
+          return fallback;
+        }
+      }
+      return fallback;
+    };
+
+    const languages = new Set(
+      streams
+        .map((s) => (s.language ? String(s.language).trim().toLowerCase() : ''))
+        .filter((lang) => !!lang)
+    );
+
+    // Always keep the default "all"
+    const desired = [''].concat(Array.from(languages).sort());
+    const sameSize = desired.length === languageSelect.options.length;
+    const identical =
+      sameSize &&
+      desired.every((value, idx) => String(languageSelect.options[idx].value || '').trim().toLowerCase() === value);
+    if (identical) return;
+
+    const currentValue = String(languageSelect.value || '').trim().toLowerCase();
+    languageSelect.innerHTML = '';
+    desired.forEach((value) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = value ? getLanguageLabel(value) : 'All';
+      languageSelect.appendChild(option);
+    });
+    if (currentValue && languages.has(currentValue)) {
+      languageSelect.value = currentValue;
+    } else {
+      languageSelect.value = '';
+      state.language = '';
+    }
+  };
+
   const renderCategories = () => {
     renderCategoriesView(refs, state.categories);
+    syncLanguageOptions();
   };
 
   const rerenderByRoute = () => {
@@ -593,6 +674,7 @@ export function bindEvents(refs) {
     renderDirectoryList();
     const bridge = getMultiviewBridge();
     if (bridge?.setStreams) bridge.setStreams(getStreams(), runtime.source || 'fallback');
+    syncLanguageOptions();
     updateHeaderControlsVisibility();
     renderCategories();
 

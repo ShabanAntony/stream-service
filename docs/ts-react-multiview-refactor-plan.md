@@ -81,6 +81,11 @@ Completed:
 - Legacy slot event bindings in `events.js` are removed; slot assignment/clear flows go through `window.multiviewBridge`
 - Header controls (`focus`, slot buttons `1-4`) are synchronized from React store state
 - Multiview sidebar list/meta are rendered via React bridges (`DirectoryListBridge`, `DirectoryMetaBridge`)
+- `/api/twitch/streams-by-game` supports cursor pagination (`after`) and multiview sidebar infinite scroll
+- Multiview workspace layout is viewport-filling with adaptive 1/2/3/4-slot behavior
+- 3-slot view promotes active slot as the large tile without DOM reordering of slot iframes
+- Keyboard digit hotkeys are constrained by visible slot count
+- Slot clear behavior compacts remaining streams (clear == delete)
 
 Verification:
 - No `innerHTML` writes for player slots

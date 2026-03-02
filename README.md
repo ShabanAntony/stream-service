@@ -12,7 +12,10 @@ Current UX flow is split into clear stages:
 - **Separated browsing flow**: categories, category channels, and multiview are separate pages with distinct responsibilities.
 - **Multiview (up to 4 slots)**: 2x2 player grid with slot targeting, focus mode, and dock controls.
 - **Hybrid multiview rendering**: multiview player slots + multiview sidebar list are rendered by React + TypeScript, while routing/categories/auth remain legacy vanilla JS.
-- **Slot targeting sync**: header buttons `1-4`, keyboard digits, and clicked slots stay synchronized.
+- **Adaptive multiview layout**: active slot is promoted to large tile in 3-slot view; 1/2/4-slot layouts fill available workspace.
+- **Slot targeting sync**: header buttons `1-4`, allowed keyboard digits, and clicked slots stay synchronized.
+- **Scoped hotkeys**: digits are limited by visible slots (`1`: disabled, `2`: only `1-2`, `3`: only `1-3`, `4`: `1-4`).
+- **Clear as delete**: clearing a slot compacts remaining streams left-to-right, without empty leading gaps.
 - **Focus mode**: active (and hovered) slot stays visible while other slots blur/desaturate.
 - **Category taxonomy filters**: categories use curated local tags (`src/data/category-taxonomy.json`) with AND filtering.
 - **Category channels page**: `/categories/:id` shows a compact live channel list and `Watch` action.
@@ -112,6 +115,7 @@ Current UX flow is split into clear stages:
 - Sidebar loads channels from the same category
 - Seeded channel is placed into slot 1
 - Sidebar meta/list and player slots are synchronized through `window.multiviewBridge`
+- Sidebar list supports infinite scroll with Twitch cursor pagination
 - Platform filter in multiview is temporarily disabled (Twitch-only integration path)
 
 ## Current UX Contract (MVP)
@@ -125,7 +129,10 @@ Current UX flow is split into clear stages:
 - seeds slot 1
 
 `Add` in multiview:
-- adds stream to next free slot (or target slot flow depending on UI action), synchronized with React slot island
+- adds stream to next free slot, synchronized with React slot island
+
+`Clear` in multiview:
+- deletes slot content and compacts remaining streams left-to-right
 
 ## Troubleshooting
 

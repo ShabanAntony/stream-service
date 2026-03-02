@@ -190,7 +190,7 @@ function createTwitchClient({ clientId, clientSecret }) {
     return first && first.id ? String(first.id) : null;
   }
 
-  async function getStreamsByGameName({ name, first }) {
+  async function getStreamsByGameName({ name, first, after }) {
     const token = await getAppToken();
     const gameId = await getGameIdByName({ token, name });
     if (!gameId) {
@@ -202,13 +202,16 @@ function createTwitchClient({ clientId, clientSecret }) {
     const url = new URL('https://api.twitch.tv/helix/streams');
     url.searchParams.set('first', String(first));
     url.searchParams.set('game_id', gameId);
+    if (after) {
+      url.searchParams.set('after', String(after));
+    }
 
     const streamsJson = await fetchJson(url, token);
     const items = Array.isArray(streamsJson.data) ? streamsJson.data : [];
     const userIds = Array.from(new Set(items.map((s) => s.user_id).filter(Boolean)));
     const usersById = await getUsersById({ token, userIds });
 
-    return items.map((s) => {
+    const data = items.map((s) => {
       const user = usersById.get(s.user_id) || {};
       const channel = (s.user_login || s.user_name || '').toLowerCase();
       const id = `twitch-${channel}`;
@@ -234,6 +237,16 @@ function createTwitchClient({ clientId, clientSecret }) {
         tagIds: Array.isArray(s.tag_ids) ? [...s.tag_ids] : [],
       };
     });
+    const cursor =
+      streamsJson && streamsJson.pagination && typeof streamsJson.pagination.cursor === 'string'
+        ? streamsJson.pagination.cursor
+        : '';
+    return {
+      data,
+      pagination: {
+        cursor,
+      },
+    };
   }
 
   async function getGameById({ token, id }) {

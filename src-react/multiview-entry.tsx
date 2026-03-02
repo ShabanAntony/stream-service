@@ -60,7 +60,16 @@ function MultiviewApp() {
         return;
       }
       if (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4') {
+        const current = useMultiviewStore.getState();
+        const occupied = [1, 2, 3, 4].filter((slot) => Boolean(current.slots[slot as 1 | 2 | 3 | 4]));
+        const highestVisibleSlot = occupied.length ? Math.max(...occupied) : 1;
+        if (highestVisibleSlot < 2) {
+          return;
+        }
         const slot = Number(e.key) as 1 | 2 | 3 | 4;
+        if (slot > highestVisibleSlot) {
+          return;
+        }
         setTargetSlot(slot);
         setActiveSlot(slot);
       }

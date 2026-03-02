@@ -12,8 +12,21 @@ function createTwitchRouter({ twitchClient }) {
       }
 
       const first = Math.min(Math.max(Number(req.query.first || 10), 1), 100);
-      const data = await twitchClient.getStreamsByGameName({ name, first });
-      res.json({ data });
+      const after = String(req.query.after || '').trim();
+      const result = await twitchClient.getStreamsByGameName({ name, first, after });
+      if (Array.isArray(result)) {
+        res.json({ data: result, pagination: { cursor: '' } });
+        return;
+      }
+      res.json({
+        data: Array.isArray(result?.data) ? result.data : [],
+        pagination: {
+          cursor:
+            result && result.pagination && typeof result.pagination.cursor === 'string'
+              ? result.pagination.cursor
+              : '',
+        },
+      });
     } catch (err) {
       const status = err && err.statusCode ? err.statusCode : 500;
       res.status(status).json({ error: String(err.message || err) });

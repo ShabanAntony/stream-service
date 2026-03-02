@@ -44,11 +44,17 @@ Separate responsibilities between pages:
 
 ### `/multiview`
 - Player layout templates (1/2/3/4)
+- Adaptive layout rules:
+  - 1 slot: fills available workspace
+  - 2 slots: split workspace evenly
+  - 3 slots: active slot is large, two others are stacked
+  - 4 slots: 2x2 split
 - Focus mode / dock controls
 - Sidebar:
   - streamers from current selected category (if opened from category flow)
   - Add actions to fill slots
   - search field by channel login (`twitch.tv/<streamer_name>`)
+  - infinite scroll via Twitch pagination cursor
 
 ## Navigation Contract (Category -> Multiview)
 Multiview must receive enough context to keep category-based browsing available.
@@ -89,8 +95,18 @@ Notes:
 - `Add`:
   - adds to first free slot
   - if full (4/4), future behavior: prompt replace target slot
+- `Clear`:
+  - removes selected slot content
+  - compacts remaining streams left-to-right (no empty leading slots)
 - `Watch` (optional in sidebar later):
   - replace active slot and focus it
+
+### Keyboard on `/multiview`
+- Digits are constrained by visible slot count:
+  - 1 visible slot: `1-4` ignored
+  - 2 visible slots: `1-2` active
+  - 3 visible slots: `1-3` active
+  - 4 visible slots: `1-4` active
 
 ## Search in Multiview (by Twitch channel login)
 

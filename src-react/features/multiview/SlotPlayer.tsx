@@ -42,7 +42,7 @@ export function SlotPlayer({ stream, isActive }: SlotPlayerProps) {
         <a className="slot__overlay-link" href={stream.url} target="_blank" rel="noreferrer">
           Open
         </a>
-        <span className="slot__overlay-link">{isActive ? 'Active' : 'Muted'}</span>
+        <span className="slot__overlay-link">{isActive ? 'Active' : 'Inactive'}</span>
       </div>
     </>
   );

@@ -5,14 +5,12 @@ import type { SlotId } from './types';
 
 interface SlotCardProps {
   slotId: SlotId;
-  hidden: boolean;
 }
 
-export const SlotCard = memo(function SlotCard({ slotId, hidden }: SlotCardProps) {
+export const SlotCard = memo(function SlotCard({ slotId }: SlotCardProps) {
   const streams = useMultiviewStore((state) => state.streams);
   const streamId = useMultiviewStore((state) => state.slots[slotId]);
   const activeSlot = useMultiviewStore((state) => state.activeSlot);
-  const targetSlot = useMultiviewStore((state) => state.targetSlot);
   const focusMode = useMultiviewStore((state) => state.focusMode);
   const hoverSlot = useMultiviewStore((state) => state.hoverSlot);
   const setActiveSlot = useMultiviewStore((state) => state.setActiveSlot);
@@ -22,14 +20,12 @@ export const SlotCard = memo(function SlotCard({ slotId, hidden }: SlotCardProps
 
   const stream = getStreamById(streams, streamId);
   const isActive = activeSlot === slotId;
-  const isTarget = targetSlot === slotId;
   const isFocusTarget = focusMode && (isActive || hoverSlot === slotId);
 
   return (
     <div
       className={`slot js-slot${isActive ? ' is-active' : ''}${isFocusTarget ? ' is-focus-target' : ''}`}
       data-slot={slotId}
-      hidden={hidden}
       onClick={() => {
         setActiveSlot(slotId);
         setTargetSlot(slotId);
@@ -46,16 +42,6 @@ export const SlotCard = memo(function SlotCard({ slotId, hidden }: SlotCardProps
       <div className="slot__top">
         <div className="slot__title">Slot {slotId}</div>
         <div>
-          <button
-            className="slot__action"
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setTargetSlot(slotId);
-            }}
-          >
-            {isTarget ? 'Targeted' : 'Target'}
-          </button>
           <button
             className="slot__action js-slot-clear"
             type="button"

@@ -1,6 +1,6 @@
 import { hydrateTwitchStreams } from './api/hydrateTwitch.js';
 import { logoutTwitch } from './api/auth.js';
-import { fetchCategoryStreamsByName } from './api/categoryStreams.js';
+import { fetchCategoryStreamsByName, fetchCategoryStreamsPageByName } from './api/categoryStreams.js';
 import {
   clearCategoriesTagFilters,
   persist,
@@ -259,6 +259,10 @@ export function bindEvents(refs) {
   };
 
   let categoryStreamsRequestId = 0;
+  let multiviewStreamsCursor = '';
+  let multiviewStreamsLoadingMore = false;
+  let multiviewStreamsHasMore = false;
+  let multiviewStreamsContextKey = '';
 
   const getSelectedCategoryFromRoute = () => {
     const match = (state.routePath || '').match(/^\/categories\/([^/]+)\/?$/);
@@ -288,6 +292,40 @@ export function bindEvents(refs) {
       setCategoryStreamsError(error instanceof Error ? error.message : 'Failed to load category streams');
       renderCategories();
       return [];
+    }
+  };
+
+  const loadMoreMultiviewStreams = async () => {
+    const routeKind = getRouteKind(state.routePath);
+    if (routeKind !== 'multiview') return;
+    if (!state.multiviewContext.categoryName) return;
+    if (!multiviewStreamsHasMore || !multiviewStreamsCursor || multiviewStreamsLoadingMore) return;
+
+    multiviewStreamsLoadingMore = true;
+    try {
+      const page = await fetchCategoryStreamsPageByName(
+        state.multiviewContext.categoryName,
+        40,
+        multiviewStreamsCursor
+      );
+      const nextList = Array.isArray(page?.data) ? page.data : [];
+      if (nextList.length) {
+        const merged = [...getStreams(), ...nextList];
+        const dedupedMap = new Map();
+        merged.forEach((item) => {
+          if (!item || !item.id) return;
+          dedupedMap.set(item.id, item);
+        });
+        setStreams(Array.from(dedupedMap.values()), 'live');
+        renderDirectoryList();
+      }
+      multiviewStreamsCursor = page?.pagination?.cursor || '';
+      multiviewStreamsHasMore = Boolean(multiviewStreamsCursor);
+    } catch (error) {
+      console.error('[multiview] load more failed', error);
+      multiviewStreamsHasMore = false;
+    } finally {
+      multiviewStreamsLoadingMore = false;
     }
   };
 
@@ -336,15 +374,24 @@ export function bindEvents(refs) {
 
   const ensureMultiviewSidebarContext = async () => {
     syncMultiviewContextFromUrl();
+    const contextKey = `${state.multiviewContext.categoryId || ''}:${state.multiviewContext.categoryName || ''}`;
+    const contextChanged = contextKey !== multiviewStreamsContextKey;
+    if (contextChanged) {
+      multiviewStreamsContextKey = contextKey;
+      multiviewStreamsCursor = '';
+      multiviewStreamsHasMore = false;
+      multiviewStreamsLoadingMore = false;
+    }
     if (!state.multiviewContext.categoryName) {
       return;
     }
-    const streams = await ensureCategoryStreamsLoaded({
-      id: state.multiviewContext.categoryId,
-      name: state.multiviewContext.categoryName,
-    });
+    const page = await fetchCategoryStreamsPageByName(state.multiviewContext.categoryName, 40);
+    const streams = Array.isArray(page?.data) ? page.data : [];
+    multiviewStreamsCursor = page?.pagination?.cursor || '';
+    multiviewStreamsHasMore = Boolean(multiviewStreamsCursor);
     if (Array.isArray(streams) && streams.length) {
       setStreams(streams, 'live');
+      setCategoryStreams(streams);
       renderDirectoryList();
       seedMultiviewSlotFromQuery(streams);
     }
@@ -523,6 +570,18 @@ export function bindEvents(refs) {
     searchInput.addEventListener('input', () => {
       state.q = searchInput.value.trim();
       rerenderByRoute();
+    });
+  }
+
+  if (listEl) {
+    listEl.addEventListener('scroll', () => {
+      const routeKind = getRouteKind(state.routePath);
+      if (routeKind !== 'multiview') return;
+      if (!listEl) return;
+      const threshold = 220;
+      const nearBottom = listEl.scrollHeight - (listEl.scrollTop + listEl.clientHeight) <= threshold;
+      if (!nearBottom) return;
+      void loadMoreMultiviewStreams();
     });
   }
 

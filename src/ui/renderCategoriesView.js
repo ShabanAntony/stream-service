@@ -220,11 +220,16 @@ function renderCategoryCards(refs, categories, routeInfo) {
               const avatarHtml = stream.profileImageUrl
                 ? `<img class="stream-card__avatar-img" src="${escapeHtml(stream.profileImageUrl)}" alt="${escapeHtml(stream.title)}" loading="lazy" />`
                 : '';
+              const preview =
+                stream.thumbnailUrl && typeof stream.thumbnailUrl === 'string'
+                  ? `<img class="category-channel-card__preview" src="${escapeHtml(stream.thumbnailUrl)}" alt="${escapeHtml(stream.title)}" loading="lazy" />`
+                  : '';
               const viewersLabel =
                 stream.isLive === false ? 'Currently offline' : `${formatNumber(Number(stream.viewerCount || 0))} viewers`;
               return `
                 <article class="category-channel-card" data-id="${escapeHtml(stream.id)}">
                   <div class="category-channel-card__media">
+                    ${preview}
                     <div class="stream-card__avatar category-channel-card__avatar" aria-hidden="true">${avatarHtml}</div>
                   </div>
                   <div class="category-channel-card__body">

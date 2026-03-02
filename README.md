@@ -11,7 +11,7 @@ Current UX flow is split into clear stages:
 
 - **Separated browsing flow**: categories, category channels, and multiview are separate pages with distinct responsibilities.
 - **Multiview (up to 4 slots)**: 2x2 player grid with slot targeting, focus mode, and dock controls.
-- **Hybrid multiview rendering**: multiview player slots are now rendered by a React + TypeScript island, while directory/categories remain legacy vanilla JS.
+- **Hybrid multiview rendering**: multiview player slots + multiview sidebar list are rendered by React + TypeScript, while routing/categories/auth remain legacy vanilla JS.
 - **Slot targeting sync**: header buttons `1-4`, keyboard digits, and clicked slots stay synchronized.
 - **Focus mode**: active (and hovered) slot stays visible while other slots blur/desaturate.
 - **Category taxonomy filters**: categories use curated local tags (`src/data/category-taxonomy.json`) with AND filtering.
@@ -60,11 +60,10 @@ Current UX flow is split into clear stages:
   - multiview slots and focus state
   - category filters/sort
   - category channel list state
-  - multiview context (`categoryId`, `categoryName`, `platform`)
+  - multiview context (`categoryId`, `categoryName`)
 - Main UI modules:
   - `src/ui/renderCategoriesView.js`
   - `src/ui/renderList.js`
-  - `src/ui/renderSlots.js`
   - `src/ui/applyLayout.js`
 - React multiview island:
   - `src-react/multiview-entry.tsx`
@@ -109,11 +108,11 @@ Current UX flow is split into clear stages:
 - If opened from category flow, URL contains context:
   - `categoryId`
   - `categoryName`
-  - `platform`
   - `seed`
 - Sidebar loads channels from the same category
 - Seeded channel is placed into slot 1
-- Sidebar/list remains legacy-rendered; player slots are React-rendered and synchronized through a bridge (`window.multiviewBridge`)
+- Sidebar meta/list and player slots are synchronized through `window.multiviewBridge`
+- Platform filter in multiview is temporarily disabled (Twitch-only integration path)
 
 ## Current UX Contract (MVP)
 
@@ -147,8 +146,7 @@ Current UX flow is split into clear stages:
 - Product/UX spec for this flow: `docs/multiview-category-flow-spec.md`
 
 ## Next Steps
-1. Remove remaining legacy `renderSlots()` path and duplicate slot event handling in `src/events.js`
-2. Move multiview header controls (`focus`, slot buttons) to React to avoid dual state ownership
-3. Add direct Twitch channel lookup endpoint (when login is not in current category list)
-4. Add user presets/playlists for multiview (saved streamer sets + layout)
-5. Expand React migration beyond multiview slots (sidebar/directory/categories)
+1. Move multiview header controls from DOM-bridge listeners to pure React components (remove direct `querySelector` bindings in `src-react/multiview-entry.tsx`)
+2. Add direct Twitch channel lookup endpoint (when login is not in current category list)
+3. Add user presets/playlists for multiview (saved streamer sets + layout)
+4. Expand React migration beyond multiview (routing/categories)

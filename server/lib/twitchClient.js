@@ -212,6 +212,10 @@ function createTwitchClient({ clientId, clientSecret }) {
       const user = usersById.get(s.user_id) || {};
       const channel = (s.user_login || s.user_name || '').toLowerCase();
       const id = `twitch-${channel}`;
+      const thumbnailTemplate = typeof s.thumbnail_url === 'string' ? s.thumbnail_url : '';
+      const thumbnailUrl = thumbnailTemplate
+        ? thumbnailTemplate.replace('{width}', '320').replace('{height}', '180')
+        : null;
 
       return {
         id,
@@ -219,6 +223,7 @@ function createTwitchClient({ clientId, clientSecret }) {
         channel,
         title: s.user_name || channel,
         profileImageUrl: user.profile_image_url || null,
+        thumbnailUrl,
         category: s.game_name || 'Unknown',
         language: s.language || '',
         region: null,

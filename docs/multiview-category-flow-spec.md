@@ -2,9 +2,8 @@
 
 ## Status
 - Phase: MVP in progress (partially implemented)
-- Stack now: vanilla JS
-- Planned later: TypeScript + React refactor
-- Sandbox mode: `read-only` (current agent environment mode)
+- Stack now: hybrid (`src/` legacy vanilla JS + `src-react/` React multiview island)
+- Planned later: continue migrating categories/routing UI to React
 
 Implemented already:
 - `/` categories page with curated taxonomy tag filters
@@ -58,10 +57,9 @@ Minimum payload:
 - `categoryId`
 - `categoryName`
 - `seedStreamerId` (internal stream item id, e.g. `twitch-ramzes`)
-- `platform` (future-proofing; `twitch` for now)
 
 Recommended URL shape (example):
-- `/multiview?categoryId=29595&categoryName=Dota%202&seed=twitch-ramzes&platform=twitch`
+- `/multiview?categoryId=29595&categoryName=Dota%202&seed=twitch-ramzes`
 
 Notes:
 - `categoryName` is for UI display only.
@@ -124,7 +122,7 @@ Goal:
   - Mitigation: preserve category context and provide `Back to category` action in multiview.
 
 ## Future (after MVP)
-- TypeScript + React refactor
+- Complete TypeScript + React migration
 - Route formalization (`/multiview`, `/categories/:id`)
 - Shared typed models for:
   - Category

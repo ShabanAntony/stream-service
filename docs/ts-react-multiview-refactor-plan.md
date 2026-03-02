@@ -69,12 +69,18 @@ Verification:
 
 ### Stage 4: Route migration and cleanup
 
-Status: pending
+Status: in progress
 
 Scope:
 - Migrate multiview page controls from `events.js` to React
 - Remove duplicate slot logic from legacy renderer / event bindings
 - Add test coverage (render scope + interaction flows)
+
+Completed:
+- Legacy slot rendering path is detached from multiview interactions (`renderSlots()` no longer drives `/multiview`)
+- Legacy slot event bindings in `events.js` are removed; slot assignment/clear flows go through `window.multiviewBridge`
+- Header controls (`focus`, slot buttons `1-4`) are synchronized from React store state
+- Multiview sidebar list/meta are rendered via React bridges (`DirectoryListBridge`, `DirectoryMetaBridge`)
 
 Verification:
 - No `innerHTML` writes for player slots
